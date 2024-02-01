@@ -10,16 +10,11 @@ Non-goal:
 
 Plan:
 
-- Implement compiler.
-- Implement assembler.
-- Implement linker.
+- Implement compiler in C (language to assembly).
 - Extent simple language with some larger concepts.
 - Rewrite compiler pipeline in language.
-
-Compiler implementation:
-
-- Perhaps use Rust, Zig or C? Opportunity to get to grips with them.
-- Perhaps WASM as a compile target?
+- Implement assembler (assembly to machine code, probably x86).
+- Implement linker (x86 to ELF).
 
 Language:
 
