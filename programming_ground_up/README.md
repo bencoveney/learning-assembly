@@ -2,7 +2,7 @@
 
 https://mirrors.sarata.com/non-gnu/pgubook/ProgrammingGroundUp-1-0-booksize.pdf
 
-# Useful commands
+## Useful commands
 
 ```bash
 objdump -D ./output/file.o

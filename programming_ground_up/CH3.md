@@ -37,33 +37,64 @@ Label names can contain letters or `_`.
 | `jle`   | Jump if the second value was <= first     | jump to          |             | Checked against the `%eflags` register                                  |
 | `jmp`   | Jump unconditionally                      | jump to          |             |                                                                         |
 
-The `l` in `movl` (and others) means `long`.
+The `l` in `movl` (and others) means `long`. `movb` would be to move a `byte`.
 
 Typically when instructions have 2 operands, the 1st is the source and the second is the destination. Source does not get modified at all.
 
 # Registers
 
-| Name                              | Kind            |
-| --------------------------------- | --------------- |
-| `%eax`                            | General purpose |
-| `%ebx`                            | General purpose |
-| `%ecx`                            | General purpose |
-| `%edx`                            | General purpose |
-| `%edi`                            | General purpose |
-| `%esi`                            | General purpose |
-| `%ebp`                            | Special purpose |
-| `%esp`                            | Special purpose |
-| `%eip`                            | Special purpose |
-| `%eflags` (flags/status register) | Special purpose |
+| Name                              | Kind            | Size (bytes) | Notes                            |
+| --------------------------------- | --------------- | ------------ | -------------------------------- |
+| `%eax`                            | General purpose | 4            |                                  |
+| `%ax`                             | General purpose | 2            | Least significant half of `%eax` |
+| `%al`                             | General purpose | 1            | Least significant half of `%ax`  |
+| `%ah`                             | General purpose | 1            | Most significant half of `%ax`   |
+| `%ebx`                            | General purpose | 4            |                                  |
+| `%ecx`                            | General purpose | 4            |                                  |
+| `%edx`                            | General purpose | 4            |                                  |
+| `%edi`                            | General purpose | 4            |                                  |
+| `%esi`                            | General purpose | 4            |                                  |
+| `%ebp`                            | Special purpose | 4            |                                  |
+| `%esp`                            | Special purpose | 4            |                                  |
+| `%eip`                            | Special purpose | 4            |                                  |
+| `%eflags` (flags/status register) | Special purpose | 4            |                                  |
 
-# Operands
+`%ax` is part of `%eax` and will be wiped when interacting with `%eax`, and so on. Best to only use a register for only one type of data at a time.
 
-| Symbol                       | Example               | Addressing mode            |
-| ---------------------------- | --------------------- | -------------------------- |
-| None                         | `1`                   | Direct addressing          |
-| `$`                          | `$1`                  | Immediate                  |
-| `$0x`                        | `$0x80`               | Immediate (in hexidecimal) |
-| `beginning(,index,itemSize)` | `data_items(,%edi,4)` | Indexed                    |
+# Addressing memory in operands
+
+General form of memory address references is:
+
+```
+ADDRESS_OR_OFFSET(%BASE_OR_OFFSET,%INDEX,MULTIPLIER)
+```
+
+Where the final address is calculated as:
+
+```
+FINAL ADDRESS = ADDRESS_OR_OFFSET + %BASE_OR_OFFSET + (MULTIPLIER * %INDEX)
+```
+
+- `ADDRESS_OR_OFFSET` must be a constant.
+- `%BASE_OR_OFFSET` must be a register.
+- `%INDEX` must be a register.
+- `MULTIPLIER` must be a constant, and can be 1, 2, or 4 (maybe 8 on 64 bit?).
+
+Many of the addressing modes are built from this format.
+
+| Symbol                                  | Example               | Addressing mode                                              |
+| --------------------------------------- | --------------------- | ------------------------------------------------------------ |
+| `$VALUE`                                | `$1`                  | Immediate mode - Uses number literal                         |
+| `$0xVALUE`                              | `$0x80`               | Immediate mode (in hexidecimal)                              |
+| `$LABEL`                                | `$_start`             | Immediate mode - Uses the address                            |
+| `%REGISTER`                             | `%eax`                | Register addressing mode                                     |
+| `ADDRESS_OR_OFFSET`                     | `1`                   | Direct addressing mode - Uses the value at the address       |
+| `LABEL`                                 | `_start`              | Direct addressing mode - Uses the value at the address       |
+| `ADDRESS_OR_OFFSET(,%INDEX,MULTIPLIER)` | `data_items(,%edi,4)` | Indexed addressing mode - Uses the value at the address      |
+| `(%BASE_OR_OFFSET)`                     | `(%eax)`              | Indirect addressing mode - Uses the value at the address     |
+| `ADDRESS_OR_OFFSET(%BASE_OR_OFFSET)`    | `4(%eax)`             | Base pointer addressing mode - Uses the value at the address |
+
+Every addressing mode can be used as either source or destination operand. Immediate mode can only be used as source.
 
 # System call
 
