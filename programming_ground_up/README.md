@@ -1,5 +1,6 @@
 # Programming from ground up book
 
+https://savannah.nongnu.org/projects/pgubook/
 https://mirrors.sarata.com/non-gnu/pgubook/ProgrammingGroundUp-1-0-booksize.pdf
 
 ## Useful commands
@@ -14,3 +15,7 @@ hd ./output/file
 diff <(command ./output/file.o) <(command ./output/file_alt.o)
 shasum ./output/file.o ./output/file_alt.o
 ```
+
+## References
+
+https://web.archive.org/web/20160801075139/http://www.x86-64.org/documentation/abi.pdf

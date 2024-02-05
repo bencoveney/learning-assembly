@@ -227,8 +227,21 @@ Using registers for function calling may have some advantages.
 
 Ultimately, you can call functions however you want from within your own code. Adhering to a convention is only strictly necessary when calling out (or being called) by code you didn't write (e.g. a C library).
 
+# Syntax used
+
+| Syntax                   | Description              |
+| ------------------------ | ------------------------ |
+| `.type power, @function` | Instruct the linker that |
+
+# Power example
+
+Couldn't the value be left in `%eax` for the duration?
+
+This sample doesn't build and run on my machine. This is because it uses 32-bit stach instructions (`pushl`, `popl`) which are not supported on 64 bit architectures.
+
 # References
 
 https://en.wikipedia.org/wiki/X86_calling_conventions
 https://stackoverflow.com/questions/37239885/what-is-leal-edx-edx-4-eax-means
 https://stackoverflow.com/questions/29790175/assembly-x86-leave-instruction
+https://stackoverflow.com/questions/21679131/error-invalid-instruction-suffix-for-push
