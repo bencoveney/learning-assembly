@@ -235,7 +235,9 @@ Ultimately, you can call functions however you want from within your own code. A
 
 # Power example
 
-Couldn't the value be left in `%eax` for the duration?
+Q: Couldn't the value be left in `%eax` for the duration?
+
+> Although we could use a register for temporary storage, this program uses a local variable in order to show how to set it up. Often times there just aren’t enough registers to store everything, so you have to offload them into local variables. Other times, your function will need to call another function and send it a pointer to some of your data. You can’t have a pointer to a register, so you have to store it in a local variable in order to send a pointer to it.
 
 This sample doesn't build and run on my machine. This is because it uses 32-bit stach instructions (`pushl`, `popl`) which are not supported on 64 bit architectures.
 
