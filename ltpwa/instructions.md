@@ -1,18 +1,35 @@
 # Instructions
 
-| Instr     | Operand 1   | Operand 2   | Behaviour                                                                                      |
-| --------- | ----------- | ----------- | ---------------------------------------------------------------------------------------------- |
-| `movq`    | source\*    | destination | Move quadword (64 bits)                                                                        |
-| `movl`    | source\*    | destination | Move long (32 bits)                                                                            |
-| `movw`    | source\*    | destination | Move word (16 bits)                                                                            |
-| `movb`    | source\*    | destination | Move byte (8 bits)                                                                             |
-| `addq`    | source\*    | destination | Add two values and store the result in `destination`                                           |
-| `subq`    | source\*    | destination | Subtracts the source from the destination and stores the result in `destination`               |
-| `incq`    | destination |             | Increment a value and store the result in `destination`                                        |
-| `decq`    | destination |             | Decrement a value and store the result in `destination`                                        |
-| `mulq`    | source      |             | Multiplies the source by `%rax` and stores the result in `%rax`.                               |
-| `divq`    | source      |             | Divides the source by `%rax`, stores the result in `%rax`, and stores the remainder in `%rdx`. |
-| `syscall` |             |             | Perform a system call. Args passed in registers. Kernel takes over                             |
+| Instr     | Operand 1   | Operand 2   | Behaviour                                                                                                      |
+| --------- | ----------- | ----------- | -------------------------------------------------------------------------------------------------------------- |
+| `movq`    | source\*    | destination | Move quadword from `source` to `destination` (64 bits)                                                         |
+| `movl`    | source\*    | destination | Move long from `source` to `destination` (32 bits)                                                             |
+| `movw`    | source\*    | destination | Move word from `source` to `destination` (16 bits)                                                             |
+| `movb`    | source\*    | destination | Move byte from `source` to `destination` (8 bits)                                                              |
+| `addq`    | source\*    | destination | Add two values and store the result in `destination`                                                           |
+| `subq`    | source\*    | destination | Subtracts the source from the destination and stores the result in `destination`                               |
+| `incq`    | destination |             | Increment a value and store the result in `destination`                                                        |
+| `decq`    | destination |             | Decrement a value and store the result in `destination`                                                        |
+| `mulq`    | source      |             | Multiplies the source by `%rax` and stores the result in `%rax`.                                               |
+| `divq`    | source      |             | Divides `%rax` by the source, stores the result in `%rax`, and stores the remainder in `%rdx`.                 |
+| `syscall` |             |             | Perform a system call. Args passed in registers. Kernel takes over                                             |
+| `jmp`     | nextAddress |             | Unconditional jump - Alter program flow by modifying address of next instruction in `%rip`                     |
+| `jz`      | nextAddress |             | Conditional jump - Jump if the zero flag is set to 1                                                           |
+| `jnz`     | nextAddress |             | Conditional jump - Jump if the zero flag is set to 0                                                           |
+| `jc`      | nextAddress |             | Conditional jump - Jump if the carry flag is set to 1                                                          |
+| `jnc`     | nextAddress |             | Conditional jump - Jump if the carry flag is set to 0                                                          |
+| `cmpq`    | left\*      | right       | Compare and update flags. Equal: zero flag set. `right` > `left`: flags cleared. `right` < `left`: complicated |
+| `je`      | nextAddress |             | Conditionally jump if `right` == `left`                                                                        |
+| `jne`     | nextAddress |             | Conditionally jump if `right` != `left`                                                                        |
+| `ja`      | nextAddress |             | Conditionally jump if `right` > `left`                                                                         |
+| `jae`     | nextAddress |             | Conditionally jump if `right` >= `left`                                                                        |
+| `jb`      | nextAddress |             | Conditionally jump if `right` < `left`                                                                         |
+| `jbe`     | nextAddress |             | Conditionally jump if `right` <= `left`                                                                        |
+| `cmovgq`  | source      | destination | Conditionally move if `right` > `left`                                                                         |
+| `cmovleq` | source      | destination | Conditionally move if `right` > `left`                                                                         |
+| `loopq`   |             |             | Decrement the value it `%rcx`, and jump if the result is not zero                                              |
+| `loopeq`  |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was equal                |
+| `loopneq` |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was not equal            |
 
 \* = can be a literal.
 
