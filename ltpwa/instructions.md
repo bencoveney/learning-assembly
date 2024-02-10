@@ -2,10 +2,10 @@
 
 | Instr     | Operand 1   | Operand 2   | Behaviour                                                                                                      |
 | --------- | ----------- | ----------- | -------------------------------------------------------------------------------------------------------------- |
-| `movq`    | source\*    | destination | Move quadword from `source` to `destination` (64 bits)                                                         |
-| `movl`    | source\*    | destination | Move long from `source` to `destination` (32 bits)                                                             |
-| `movw`    | source\*    | destination | Move word from `source` to `destination` (16 bits)                                                             |
-| `movb`    | source\*    | destination | Move byte from `source` to `destination` (8 bits)                                                              |
+| `movq`    | source\*    | destination | Move quadword from `source` to `destination` (64 bits).                                                        |
+| `movl`    | source\*    | destination | Move long from `source` to `destination` (32 bits).                                                            |
+| `movw`    | source\*    | destination | Move word from `source` to `destination` (16 bits).                                                            |
+| `movb`    | source\*    | destination | Move byte from `source` to `destination` (8 bits).                                                             |
 | `addq`    | source\*    | destination | Add two values and store the result in `destination`                                                           |
 | `subq`    | source\*    | destination | Subtracts the source from the destination and stores the result in `destination`                               |
 | `incq`    | destination |             | Increment a value and store the result in `destination`                                                        |
@@ -30,6 +30,9 @@
 | `loopq`   |             |             | Decrement the value it `%rcx`, and jump if the result is not zero                                              |
 | `loopeq`  |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was equal                |
 | `loopneq` |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was not equal            |
+| `leaq`    | destination |             | "Load effective address" - Calculate a memory location, rather than load its value                             |
+
+For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 
 \* = can be a literal.
 

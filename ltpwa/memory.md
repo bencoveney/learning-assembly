@@ -63,7 +63,86 @@ Most significant bits                          Least significant bits
 
 ## Values
 
-| Example | Kind            | Notes                   |
-| ------- | --------------- | ----------------------- |
-| $5      | Immediate value | Value of 5 (in decimal) |
-| $0b0101 | Immediate value | Value of 5 (in binary)  |
+| Example                      | Addressing Mode                           | Notes                                                              |
+| ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| `$5`                         | Immediate mode                            | Value of 5 (in decimal)                                            |
+| `$0b0101`                    | Immediate mode                            | Value of 5 (in binary)                                             |
+| `$label`                     | Immediate mode                            | Memory address of label                                            |
+| `%rax`                       | Register mode                             | Value from the register                                            |
+| `label`                      | Direct mode                               | Value (at the memory address) of label                             |
+| `(%rax)`                     | Register indirect mode                    | Looks up the value from the memory address stored in the register  |
+| `numbers(,%rbx,8)`           | Indexed mode                              | Look up the index-th value from the array at the specified address |
+| `offset(basepointer)`        | Base pointer mode (aka displacement mode) |                                                                    |
+| `offset(basepointer,%rbx,8)` | Base pointer indexed mode                 |                                                                    |
+|                              | Program counter relative mode             |                                                                    |
+
+### General addressing mode
+
+```
+VALUE(BASEREG, IDXREG, MULTIPLIER)
+```
+
+Calculated as:
+
+```
+address = VALUE + BASEREG + IDXREG * MULTIPLIER
+```
+
+| Part         | Value                             | Default |
+| ------------ | --------------------------------- | ------- |
+| `VALUE`      | Fixed value                       | 0       |
+| `BASEREG`    | Register                          | 0       |
+| `IDX`        | Register                          | 0       |
+| `MULTIPLIER` | Fixed value: 1, 2, 4 or 8 (bytes) | 1       |
+
+Sometimes `VALUE` can be a calculation, like `label-8` - Don't really know when this is permitted.
+
+#### Example
+
+```
+movq VALUE(%rbx, %rdi, 2), %rax
+```
+
+- Look up the memory address in the `BASEREG` `%rbx`.
+- Add the offset `VALUE` to that base address.
+- Then step `%rdi` times, with steps of size `2`.
+- Load the _value_ at that final location into `%rax`
+
+## Data Sections
+
+```
+label:
+  .size value [, value, value...]
+```
+
+Can be read from and written to. Generally need to move values to registers to use/manipulate them.
+
+### Sizes
+
+| Directive | Size    |
+| --------- | ------- |
+| `.byte`   | 1 byte  |
+| `.quad`   | 4 bytes |
+
+### Lists
+
+```
+mynumbers:
+  .quad 5, 20, 33, 80, 52, 10, 1
+```
+
+Common ways of identifying the end of the list:
+
+- A "sentinel" - special value identifying the end of the list (e.g. 0).
+  - Easiest to program.
+- Memory location identifying the end, stored in another label.
+  - Useful for static data.
+- Number of elements in list, stored in another location.
+  - Useful for variable-length arrays.
+
+```
+numberofnumbers:
+  .quad 7
+mynumbers:
+  .quad 5, 20, 33, 80, 52, 10, 1
+```

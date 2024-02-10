@@ -29,7 +29,7 @@ ld ./output/1_05_exponent_alt.o -o ./output/1_05_exponent_alt
 ./output/1_05_exponent_alt
 echo $?
 
-as 1_05_exponent_loop.s -o ./output/1_05_exponent_loop.o
-ld ./output/1_05_exponent_loop.o -o ./output/1_05_exponent_loop
-./output/1_05_exponent_loop
+as 1_05_exponentloop.s -o ./output/1_05_exponentloop.o
+ld ./output/1_05_exponentloop.o -o ./output/1_05_exponentloop
+./output/1_05_exponentloop
 echo $?
