@@ -67,6 +67,7 @@ Most significant bits                          Least significant bits
 | ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
 | `$5`                         | Immediate mode                            | Value of 5 (in decimal)                                            |
 | `$0b0101`                    | Immediate mode                            | Value of 5 (in binary)                                             |
+| `$'z'`                       | Immediate mode                            | ASCII value of the char literal 'z'                                |
 | `$label`                     | Immediate mode                            | Memory address of label                                            |
 | `%rax`                       | Register mode                             | Value from the register                                            |
 | `label`                      | Direct mode                               | Value (at the memory address) of label                             |
@@ -110,7 +111,7 @@ movq VALUE(%rbx, %rdi, 2), %rax
 
 ## Data Sections
 
-```
+```gas
 label:
   .size value [, value, value...]
 ```
@@ -126,7 +127,7 @@ Can be read from and written to. Generally need to move values to registers to u
 
 ### Lists
 
-```
+```gas
 mynumbers:
   .quad 5, 20, 33, 80, 52, 10, 1
 ```
@@ -140,9 +141,99 @@ Common ways of identifying the end of the list:
 - Number of elements in list, stored in another location.
   - Useful for variable-length arrays.
 
-```
+```gas
 numberofnumbers:
   .quad 7
 mynumbers:
   .quad 5, 20, 33, 80, 52, 10, 1
+```
+
+### Arrays
+
+Can use constants and compile-time evaluation to calculate the length of array, between 2 labels (the starting and ending memory address).
+
+```gas
+.equ PERSON_RECORD_SIZE, 32
+numpeople:
+  .quad (endpeople - people) / PERSON_RECORD_SIZE
+people:
+  .quad 250, 3, 75, 24
+  .quad 250, 4, 70, 11
+  .quad 180, 5, 69, 65
+endpeople:
+```
+
+## Records/Structs/Structures
+
+Well defined segment of data, with multiple parts laid out in a specific way in memory.
+
+E.g. "person" with 4 properties stored as quadwords
+
+```
+High addresses      |      |
+                    +------+ <-- End of record (start + 32 -1)
+                    |      |
+                    +------+ <-- Location of age (start + 24)
+                    |      |
+                    +------+ <-- Location of height (start + 16)
+                    |      |
+                    +------+ <-- Location of hair colour (start + 8)
+                    |      |
+Start of record --> +------+ <-- Location of weight (start + 0)
+Low addresses       |      |
+```
+
+Common to set the offsets as constants - e.g:
+
+```gas
+.equ WEIGHT_OFFSET, 0
+.equ HAIR_COLOUR_OFFSET, 8
+.equ HEIGHT_OFFSET, 16
+.equ AGE_OFFSET, 24
+.globl WEIGHT_OFFSET, HAIR_COLOUR_OFFSET, HEIGHT_OFFSET, AGE_OFFSET
+
+# Alternative method:
+.equ WEIGHT_OFFSET, 0
+.equ HAIR_COLOUR_OFFSET, WEIGHT_OFFSET + 8
+.equ HEIGHT_OFFSET, HAIR_COLOUR_OFFSET + 8
+.equ AGE_OFFSET, HEIGHT_OFFSET + 8
+.globl WEIGHT_OFFSET, HAIR_COLOUR_OFFSET, HEIGHT_OFFSET, AGE_OFFSET
+```
+
+## ASCII
+
+```gas
+mytext:
+  .ascii "This is a string of characters.\0"
+```
+
+Equivalent to:
+
+```gas
+mytext:
+  .byte 84, 104, 105, 115, 32, 105, 115, 32, 97, 32, 115
+  .byte 116, 114, 105, 110, 102, 32, 111, 102, 32, 99
+  .byte 104, 97, 114, 97, 99, 116, 101, 114, 115, 46, 0
+```
+
+Each ASCII character is 1 byte. Need to use byte operations and registers.
+Compatible with UTF-8.
+Terminated (end is marked) with a null character.
+
+- Capital letters start at 65,
+- Lowercase start at 97
+- Numbers start at 48
+- 32 is a space
+
+| Code | Represents |
+| ---- | ---------- |
+| `\0` | Null       |
+| `\n` | Newline    |
+| `\t` | Tab        |
+| `\\` | Backslash  |
+
+You can have literal ASCII chars in assembly, e.g.:
+
+```gas
+movb $'a', %al
 ```
