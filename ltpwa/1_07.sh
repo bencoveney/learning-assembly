@@ -26,3 +26,8 @@ as 1_07_browncount.s -o ./output/1_07_browncount.o
 ld ./output/1_07_persondataextended.o ./output/1_07_browncount.o -o ./output/1_07_browncount
 ./output/1_07_browncount
 echo $?
+
+as 1_07_lowercasecount.s -o ./output/1_07_lowercasecount.o
+ld ./output/1_07_lowercasecount.o -o ./output/1_07_lowercasecount
+./output/1_07_lowercasecount
+echo $?
