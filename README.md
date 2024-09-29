@@ -4,14 +4,16 @@ Goals:
 
 - Learn lower level concepts.
 
-Non-goal:
+Non-goals:
 
 - Language design.
+- Learn how to build hardware.
+- Learn how old computers worked.
 
 Plan:
 
-- Figure out enough NASM to barely write a compiler.
-- Implement compiler in NASM (language to assembly).
+- Figure out enough ASM to barely write a compiler.
+- Implement compiler in ASM (language to assembly).
 - Extent simple language with some larger concepts.
 - Rewrite compiler pipeline in language.
 - Implement assembler (assembly to machine code, probably x86).
