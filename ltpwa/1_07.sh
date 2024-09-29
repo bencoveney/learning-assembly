@@ -31,3 +31,8 @@ as 1_07_lowercasecount.s -o ./output/1_07_lowercasecount.o
 ld ./output/1_07_lowercasecount.o -o ./output/1_07_lowercasecount
 ./output/1_07_lowercasecount
 echo $?
+
+as 1_07_multibytemov.s -o ./output/1_07_multibytemov.o
+ld ./output/1_07_multibytemov.o -o ./output/1_07_multibytemov
+./output/1_07_multibytemov
+echo $?

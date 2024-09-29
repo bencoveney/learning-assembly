@@ -31,6 +31,12 @@
 | `loopeq`  |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was equal                |
 | `loopneq` |             |             | Decrement the value it `%rcx`, and jump if the result is not zero and last comparison was not equal            |
 | `leaq`    | destination |             | "Load effective address" - Calculate a memory location, rather than load its value                             |
+| `xchgq`   | source      | destination | Bi-directional `mov`, values are swapped                                                                       |
+| `bswap`   | destination |             | Reverse the order of bytes. For word size, instead of `bswapw %ax`, use `xchgb %ax, %al`                       |
+| `rorq`    | numBits\*   | register    | Rotate the register right by the number of bits. Bits which fall off the end are rotated round                 |
+| `rolq `   | numBits\*   | register    | Rotate the register left by the number of bits. Bits which fall off the end are rotated round                  |
+| `shrq`    | numBits\*   | register    | Shift the register right by the number of bits. Bits which fall off the end are replaced with 0                |
+| `shlq`    | numBits\*   | register    | Shift the register left by the number of bits. Bits which fall off the end are replaced with 0                 |
 
 For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 

@@ -237,3 +237,93 @@ You can have literal ASCII chars in assembly, e.g.:
 ```gas
 movb $'a', %al
 ```
+
+## Endianness
+
+x86-64 ia little endian.
+
+Big endian is sometimes called network byte order.
+
+Given this data:
+
+```
+10000000 11000000 11100000 11110000 11111000 11111100 11111110 11111111
+```
+
+Little endian is:
+
+1. `11111111`
+2. `11111110`
+3. `11111100`
+4. `11111000`
+5. `11110000`
+6. `11100000`
+7. `11000000`
+8. `10000000`
+
+Big endian is:
+
+1. `10000000`
+2. `11000000`
+3. `11100000`
+4. `11110000`
+5. `11111000`
+6. `11111100`
+7. `11111110`
+8. `11111111`
+
+Given this data:
+
+```gas
+.ascii: "Foo Bar!"
+```
+
+Little endian is:
+
+1. `!`
+2. `r`
+3. `a`
+4. `B`
+5. ` `
+6. `o`
+7. `o`
+8. `F`
+
+Big endian is:
+
+1. `F`
+2. `o`
+3. `o`
+4. ` `
+5. `B`
+6. `a`
+7. `r`
+8. `!`
+
+### Example
+
+We load this as a quadword. It will be reversed because it is little endian:
+
+```gas
+.ascii: "Foo Bar!"
+```
+
+```
+'!' 'r' 'a' 'B' ' ' 'o' 'o' 'F'
+                        \al/\ah/
+                \-----eax------/
+\--------------rax-------------/
+```
+
+`rol` and `ror` will rotate the register left/right by the specified number of bits.
+
+e.g. `ror $16, %rax` will give:
+
+```
+'o' 'F' '!' 'r' 'a' 'B' ' ' 'o'
+                        \al/\ah/
+                \-----eax------/
+\--------------rax-------------/
+```
+
+By loading multiple bytes into a register at once, we can save on memory accesses (which might be slow).

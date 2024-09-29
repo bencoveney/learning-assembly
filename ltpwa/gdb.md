@@ -89,11 +89,14 @@ Defaults for `[U]` change any time you use Examine.
 ### Examples:
 
 ```shell
-# From the location inside $rbx, print 8 bytes as decimals, 10 times
+# From the location inside $rbx, print 8 bytes as decimals, 10 times.
 x/10xw $rbx
 
-# From the instruction pointed to by $pc, print 4-bytes as instructions, 3 times
+# From the instruction pointed to by $pc, print 4-bytes as instructions, 3 times.
 x/3i $pc
+
+# From the location inside $rbx, print the null terminated ASCII string.
+x/s $rbx
 ```
 
 ## Register names
