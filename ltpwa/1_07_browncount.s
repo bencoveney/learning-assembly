@@ -8,7 +8,7 @@ _start:
   je finish
 
 mainloop:
-  cmpq $2, HAIR_COLOUR_OFFSET(%rbx)
+  cmpq $2, HAIR_OFFSET(%rbx)
   jne endloop
   incq %rdi
 
