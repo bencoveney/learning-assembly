@@ -7,24 +7,33 @@
 | `movw`    | source\*    | destination | Move word from `source` to `destination` (16 bits).                                                            |
 | `movb`    | source\*    | destination | Move byte from `source` to `destination` (8 bits).                                                             |
 | `addq`    | source\*    | destination | Add two values and store the result in `destination`                                                           |
+| `adcq`    | source\*    | destination | Add two values, incl. carry flag from prev addition - useful for bigint addition.                              |
 | `subq`    | source\*    | destination | Subtracts the source from the destination and stores the result in `destination`                               |
 | `incq`    | destination |             | Increment a value and store the result in `destination`                                                        |
 | `decq`    | destination |             | Decrement a value and store the result in `destination`                                                        |
-| `mulq`    | source      |             | Multiplies the source by `%rax` and stores the result in `%rax`.                                               |
-| `divq`    | source      |             | Divides `%rax` by the source, stores the result in `%rax`, and stores the remainder in `%rdx`.                 |
+| `mulq`    | source      |             | Multiplies the source by `%rax` and stores the result in `%rdx:%rax`                                           |
+| `divq`    | source      |             | Divides `%rdx:%rax` by the source, stores the result in `%rax`, and stores the remainder in `%rdx`.            |
 | `syscall` |             |             | Perform a system call. Args passed in registers. Kernel takes over                                             |
 | `jmp`     | nextAddress |             | Unconditional jump - Alter program flow by modifying address of next instruction in `%rip`                     |
 | `jz`      | nextAddress |             | Conditional jump - Jump if the zero flag is set to 1                                                           |
 | `jnz`     | nextAddress |             | Conditional jump - Jump if the zero flag is set to 0                                                           |
 | `jc`      | nextAddress |             | Conditional jump - Jump if the carry flag is set to 1                                                          |
 | `jnc`     | nextAddress |             | Conditional jump - Jump if the carry flag is set to 0                                                          |
+| `jo`      | nextAddress |             | Conditional jump - Jump if the overflow flag is set to 1                                                       |
+| `jno`     | nextAddress |             | Conditional jump - Jump if the overflow flag is set to 0                                                       |
+| `js`      | nextAddress |             | Conditional jump - Jump if the sign flag is set to 1                                                           |
+| `jns`     | nextAddress |             | Conditional jump - Jump if the sign flag is set to 0                                                           |
 | `cmpq`    | left\*      | right       | Compare and update flags. Equal: zero flag set. `right` > `left`: flags cleared. `right` < `left`: complicated |
 | `je`      | nextAddress |             | Conditionally jump if `right` == `left`                                                                        |
 | `jne`     | nextAddress |             | Conditionally jump if `right` != `left`                                                                        |
-| `ja`      | nextAddress |             | Conditionally jump if `right` > `left`                                                                         |
-| `jae`     | nextAddress |             | Conditionally jump if `right` >= `left`                                                                        |
-| `jb`      | nextAddress |             | Conditionally jump if `right` < `left`                                                                         |
-| `jbe`     | nextAddress |             | Conditionally jump if `right` <= `left`                                                                        |
+| `ja`      | nextAddress |             | Conditionally jump if `right` > `left` (Unsigned - checking CF & ZF)                                           |
+| `jae`     | nextAddress |             | Conditionally jump if `right` >= `left` (Unsigned - checking CF & ZF)                                          |
+| `jb`      | nextAddress |             | Conditionally jump if `right` < `left` (Unsigned - checking CF & ZF)                                           |
+| `jbe`     | nextAddress |             | Conditionally jump if `right` <= `left` (Unsigned - checking CF & ZF)                                          |
+| `jg`      | nextAddress |             | Conditionally jump if `right` > `left` (Signed - checking OF and SF)                                           |
+| `jge`     | nextAddress |             | Conditionally jump if `right` >= `left` (Signed - checking OF and SF)                                          |
+| `jl`      | nextAddress |             | Conditionally jump if `right` < `left` (Signed - checking OF and SF)                                           |
+| `jle`     | nextAddress |             | Conditionally jump if `right` <= `left` (Signed - checking OF and SF)                                          |
 | `cmovgq`  | source      | destination | Conditionally move if `right` > `left`                                                                         |
 | `cmovleq` | source      | destination | Conditionally move if `right` > `left`                                                                         |
 | `loopq`   |             |             | Decrement the value it `%rcx`, and jump if the result is not zero                                              |
@@ -37,6 +46,7 @@
 | `rolq `   | numBits\*   | register    | Rotate the register left by the number of bits. Bits which fall off the end are rotated round                  |
 | `shrq`    | numBits\*   | register    | Shift the register right by the number of bits. Bits which fall off the end are replaced with 0                |
 | `shlq`    | numBits\*   | register    | Shift the register left by the number of bits. Bits which fall off the end are replaced with 0                 |
+| `negq`    | destination |             | Change the sign and store the result in `destination`                                                          |
 
 For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 

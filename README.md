@@ -1,16 +1,15 @@
 # Compiler
 
-Goals:
+## Goals
 
-- Learn lower level concepts.
+- Learn lower level software concepts.
 
-Non-goals:
+## Non-goals
 
-- Language design.
+- Design a novel or interesting programming language.
 - Learn how to build hardware.
-- Learn how old computers worked.
 
-Plan:
+## Plan:
 
 - Figure out enough ASM to barely write a compiler.
 - Implement compiler in ASM (language to assembly).
@@ -19,28 +18,24 @@ Plan:
 - Implement assembler (assembly to machine code, probably x86).
 - Implement linker (x86 to ELF).
 
-Language:
+## Language
 
 - Just enough to get work done.
 - Use the source code of the implemented compiler to determine what features the language needs.
 
-Compiling:
+## Useful Commands
 
 ```bash
-# Generate object file
-nasm -f elf64 hello.asm
-# Generate object file + listing
-nasm -f elf64 hello.asm -l hello.lst
-
-# Link object file into executable
-ld hello.o -o hello
-
-# Run executable
-./hello
-
 # Read ELF
 readelf -aW ./hello
 
 # Hex dump
 hd ./hello
 ```
+
+## Project Content
+
+- `/ltpwa` _active_ -
+  Progress through the book "Learn to Program with Assembly"
+- `/programming_ground_up` _abandoned_ -
+  Progress through the book ["Programming from the ground up"](https://download.savannah.gnu.org/releases/pgubook/)

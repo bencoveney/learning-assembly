@@ -56,17 +56,21 @@ Most significant bits                          Least significant bits
 
 ### `%eflags`
 
-| Flag | Name       | Role                                                                                       |
-| ---- | ---------- | ------------------------------------------------------------------------------------------ |
-| `ZF` | Zero flag  | Set to 1 if the result of the last arithmetic operation was 0, otherwise 0                 |
-| `CF` | Carry flag | Set to 1 if the last arithmetic resulted in a carry (overflow) in the destination register |
+| Flag | Name          | Role                                                                                                 |
+| ---- | ------------- | ---------------------------------------------------------------------------------------------------- |
+| `ZF` | Zero flag     | Set to 1 if the result of the last arithmetic operation was 0, otherwise 0                           |
+| `CF` | Carry flag    | Set to 1 if the last arithmetic operation resulted in a carry (overflow) in the destination register |
+| `OF` | Overflow flag | Set to 1 if the last arithmetic operation resulted in a overflow for _signed_ numbers                |
+| `SF` | Sign flag     | Set to 1 if the last operation set the sign flag                                                     |
 
 ## Values
 
 | Example                      | Addressing Mode                           | Notes                                                              |
 | ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `$5`                         | Immediate mode                            | Value of 5 (in decimal)                                            |
-| `$0b0101`                    | Immediate mode                            | Value of 5 (in binary)                                             |
+| `$5`                         | Immediate mode                            | Value of 5 in decimal                                              |
+| `$0b0101`                    | Immediate mode                            | Value of 5 in binary                                               |
+| `$0x05`                      | Immediate mode                            | Value of 5 in hexidecimal                                          |
+| `$05`                        | Immediate mode                            | Value of 5 in octal (any number with a 0 prefix)                   |
 | `$'z'`                       | Immediate mode                            | ASCII value of the char literal 'z'                                |
 | `$label`                     | Immediate mode                            | Memory address of label                                            |
 | `%rax`                       | Register mode                             | Value from the register                                            |
@@ -327,3 +331,52 @@ e.g. `ror $16, %rax` will give:
 ```
 
 By loading multiple bytes into a register at once, we can save on memory accesses (which might be slow).
+
+## Signed integers
+
+Most instruction sets (incl x86-64) use "Two's complement":
+
+- Positive numbers count up from 0.
+- Negative numbers cound back from 0.
+
+In order of bits:
+
+- `0b00000000` = `0`
+- `0b00000001` = `1`
+- ...
+- `0b01111110` = `126`
+- `0b01111111` = `127`
+- `0b10000000` = `-128`
+- `0b10000001` = `-127`
+- ...
+- `0b11111110` = `-2`
+- `0b11111111` = `-1`
+
+In order of values:
+
+- `0b10000000` = `-128`
+- `0b10000001` = `-127`
+- ...
+- `0b11111110` = `-2`
+- `0b11111111` = `-1`
+- `0b00000000` = `0`
+- `0b00000001` = `1`
+- ...
+- `0b01111110` = `126`
+- `0b01111111` = `127`
+
+Properties:
+
+- First bit (AKA sign bit/flag) tells us if the number is negative.
+- Operations which cause wraps (e.g. adding 1 to `0b01111111`) are "overflows".
+- Values (for 1 byte size) range from -128 to 127 - 0 occupies a spot in the positive range.
+
+Size of a value can be increased through sign extension - repeating the sign bit
+
+- e.g. `0b01001101` = `77` = `0b0000000001001101`
+- e.g. `0b10110011` = `-77` = `0b1111111110110011`
+
+To obtain a negative value (`negq` instruction): Flip all the bits and add 1
+
+- e.g. `5` = `0b00000101` => `0b11111010` => `0b11111011` = `-5`
+- e.g. `-5` = `0b11111011` => `0b00000100` => `0b00000101` = `5`
