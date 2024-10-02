@@ -20,10 +20,10 @@ Some names are reused depending on context, which makes things confusing. "Words
 | `%rbx`    | General - Computational | Base              | Often used for indexed addressing.               | `%rbx`, `%ebx`, `%bx`, `%bh`, `%bl` |
 | `%rcx`    | General - Computational | Counter           | Often used for counts in loops.                  | `%rcx`, `%ecx`, `%cx`, `%ch`, `%cl` |
 | `%rdx`    | General - Computational | Data              | Special significance in some math/io operations. | `%rdx`, `%edx`, `%dx`, `%dh`, `%dl` |
-| `%rsi`    | General - Pointers      | Source index      | Uses when working with longer spans of memory.   | `%rsi`, `%esi`, `%si`               |
-| `%rdi`    | General - Pointers      | Destination index | Uses when working with longer spans of memory.   | `%rdi`, `%edi`, `%di`               |
-| `%rbp`    | General - Pointers      | Base pointer      | Uses when working with longer spans of memory.   | `%rbp`, `%ebp`, `%bp`               |
-| `%rsp`    | General - Pointers      | Stack pointer     | Uses when working with longer spans of memory.   | `%rsp`, `%esp`, `%sp`               |
+| `%rsi`    | General - Pointers      | Source index      | Used when working with longer spans of memory.   | `%rsi`, `%esi`, `%si`               |
+| `%rdi`    | General - Pointers      | Destination index | Used when working with longer spans of memory.   | `%rdi`, `%edi`, `%di`               |
+| `%rbp`    | General - Pointers      | Base pointer      | Used when working with longer spans of memory.   | `%rbp`, `%ebp`, `%bp`               |
+| `%rsp`    | General - Pointers      | Stack pointer     | Used when working with longer spans of memory.   | `%rsp`, `%esp`, `%sp`               |
 | `%r8`     | General                 |                   |                                                  | `%r8`, `%r8w`, `%r8w`, `%r8b`       |
 | ...       | ...                     | ...               | ...                                              | ...                                 |
 | `%r15`    | General                 |                   |                                                  | `%r15`, `%r15w`, `%r15w`, `%r15b`   |
@@ -56,12 +56,45 @@ Most significant bits                          Least significant bits
 
 ### `%eflags`
 
-| Flag | Name          | Role                                                                                                 |
-| ---- | ------------- | ---------------------------------------------------------------------------------------------------- |
-| `ZF` | Zero flag     | Set to 1 if the result of the last arithmetic operation was 0, otherwise 0                           |
-| `CF` | Carry flag    | Set to 1 if the last arithmetic operation resulted in a carry (overflow) in the destination register |
-| `OF` | Overflow flag | Set to 1 if the last arithmetic operation resulted in a overflow for _signed_ numbers                |
-| `SF` | Sign flag     | Set to 1 if the last operation set the sign flag                                                     |
+- First 16 are `flags`
+- First 32 are `eflags`
+- First 64 are `rflags`
+
+| Bit   | Mask          | Abbrev | Name                      | Category | If `=1`                                                                              |
+| ----- | ------------- | ------ | ------------------------- | -------- | ------------------------------------------------------------------------------------ |
+| 0     | `0x0000 0001` | `CF`   | Carry flag                | Status   | Last arithmetic operation resulted in a carry (overflow) in the destination register |
+| 1     | `0x0000 0002` | -      | Reserved                  | -        | Always - always 1                                                                    |
+| 2     | `0x0000 0004` | `PF`   | Parity Flag               | Status   | Last operation resulted in a value which has an even number of bits set to 1         |
+| 3     | `0x0000 0008` | -      | Reserved                  | -        | Never - always 0                                                                     |
+| 4     | `0x0000 0010` | `AF`   | Auxiliary Carry flag      | Status   | ?                                                                                    |
+| 5     | `0x0000 0020` | -      | Reserved                  | -        | Never - always 0                                                                     |
+| 6     | `0x0000 0040` | `ZF`   | Zero flag                 | Status   | Last operation resulted in 0                                                         |
+| 7     | `0x0000 0080` | `SF`   | Sign flag                 | Status   | Last operation set the sign flag                                                     |
+| 8     | `0x0000 0100` | `TF`   | Trap flag                 | Control  | Enables single-step mode                                                             |
+| 9     | `0x0000 0200` | `IF`   | Interrupt Enable flag     | Control  | The processor will respond immediately to maskable hardware interrupts               |
+| 10    | `0x0000 0400` | `DF`   | Direction flag            | Control  | String will be processed from highest to lowest address (auto-decrementing)          |
+| 11    | `0x0000 0800` | `OF`   | Overflow flag             | Status   | Last arithmetic operation resulted in a overflow for _signed_ numbers                |
+| 12    | `0x0000 1000` | `IOPL` | I/O Privilege Level       | System   | -                                                                                    |
+| 13    | `0x0000 2000` | `IOPL` | I/O Privilege Level       | System   | -                                                                                    |
+| 14    | `0x0000 4000` | `NT`   | Nested task flag          | System   | -                                                                                    |
+| 15    | `0x0000 8000` | `MD`   | Mode flag                 | Control  | -                                                                                    |
+| 16    | `0x0001 0000` | `RF`   | Resume flag               | System   | -                                                                                    |
+| 17    | `0x0002 0000` | `VM`   | Virtual 8086 mode         | System   | -                                                                                    |
+| 18    | `0x0004 0000` | `AC`   | Alignment check           | System   | -                                                                                    |
+| 19    | `0x0008 0000` | `VIF`  | Virtual interrupt flag    | System   | -                                                                                    |
+| 20    | `0x0010 0000` | `VIP`  | Virtual interrupt pending | System   | -                                                                                    |
+| 21    | `0x0020 0000` | `ID`   | Able to use CPUID         | System   | -                                                                                    |
+| 22    | `0x0040 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 23    | `0x0080 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 24    | `0x0100 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 25    | `0x0200 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 26    | `0x0400 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 27    | `0x0800 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 28    | `0x1000 0000` | -      | Reserved                  | -        | -                                                                                    |
+| 29    | `0x2000 0000` | -      | Reserved                  | System   | -                                                                                    |
+| 30    | `0x4000 0000` | -      | AES key schedule flag     | System   | -                                                                                    |
+| 31    | `0x8000 0000` | `AI`   | Alternate instruction set | System   | -                                                                                    |
+| 32-63 | ...           | -      | Reserved                  | -        | -                                                                                    |
 
 ## Values
 
