@@ -1,6 +1,6 @@
 # Instructions
 
-| Instr           | Operand 1    | Operand 2   | Behaviour                                                                                                      |
+| Instruction     | Operand 1    | Operand 2   | Behaviour                                                                                                      |
 | --------------- | ------------ | ----------- | -------------------------------------------------------------------------------------------------------------- |
 | `movq`          | source\*     | destination | Move quadword from `source` to `destination` (64 bits).                                                        |
 | `movl`          | source\*     | destination | Move long from `source` to `destination` (32 bits).                                                            |
@@ -68,42 +68,14 @@
 | `repe`/`repz`   | string instr |             | Repeats the instruction, counting down `%rcx` or until non-equal/non-zero values are found (checking `ZF`)     |
 | `repne`/`repnz` | string instr |             | Repeats the instruction, counting down `%rcx` or until equal/zero values are found (checking `ZF`)             |
 | `nop`           |              |             | Does nothing, useful for being replaced, or code alignment                                                     |
+| `pushq`         |              |             | Increments `%rsp` and pushes a value onto the stack                                                            |
+| `popq`          |              |             | Pops a value from the stack and decrements `%rsp`                                                              |
+| `enter`         | numBytes\*   | numBytes\*  | Sets up a stack frame with `numBytes` of memory reserved. 2nd `numBytes` can be used for closures              |
+| `leave`         |              |             | Clears up a stack frame                                                                                        |
 
 For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 
-\* = can be a literal.
-
-## Syscalls
-
-Places program on hold and switches control to the operating system kernel.
-
-| Syscall                                    | Number - `%rax` | `%rdi`             | `%rsi`       | `%rdx`      | `%r10` | `%r8` | `%r9` | Returns (in `%rax`)           |
-| ------------------------------------------ | --------------- | ------------------ | ------------ | ----------- | ------ | ----- | ----- | ----------------------------- |
-| Exit                                       | 60 - `0x3c`     | code               |              |             |        |       |       | -                             |
-| Seconds since epoch (1 Jan 1970)           | 201 - `0xc9`    | pointer to 64 bits |              |             |        |       |       | same pointer passed in `%rdi` |
-| Write ASCII data (without null terminator) | 1 - `0x01`      | file descriptor    | data pointer | data length |        |       |       |                               |
-
-Unused parameters will be ignored.
-
-Most registers are preserved, with the following exceptions:
-
-- `syscall` clobbers `%rcx` (with next instruction to execute upon return)
-- `syscall` clobbers `%r11` (with contents of `%eflags`)
-- Return value will be stored in `%rax`
-
-Docs on syscalls:
-
-- `man 2 syscalls`.
-- `man 2 [name]` - where `[name]` is the name of the syscall.
-- https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/
-
-### File descriptors
-
-OS gives files you open a number (file descriptors).
-
-- `0`: StdIn - often input from keyboard
-- `1`: StdOut - often output to console
-- `2`: StdErr - often also output to console
+\* = can be a literal. Probably missing plenty for this.
 
 ### x86 vs x86-64
 
@@ -120,6 +92,7 @@ Migrated from `int 0x80` to `syscall`. Restructuring allowed:
 | `.section .data`       | Preceeding region of global variables, for inclusion in a static value code/segment.                |
 | `.globl [label]`       | Designate a label/constant as global. It will be exported/available to other files when assembling. |
 | `.equ [name], [value]` | Creates a assembler-time constant with the given name. `value` can include some basic computation.  |
+| `.type [name], [type]` | Annotates a symbol with its type, e.g. `function`, `object`                                         |
 | `[label]:`             | Define a label. Ends up just pointing to an address in memory.                                      |
 
 ## Big Integer Addition
