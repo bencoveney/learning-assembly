@@ -75,9 +75,35 @@ For source/dest instructions (mov, add, sub etc) typically one operand (but not 
 
 ## Syscalls
 
-| Syscall | Number - `%rax` | `%rdi` |
-| ------- | --------------- | ------ |
-| exit    | 60              | code   |
+Places program on hold and switches control to the operating system kernel.
+
+| Syscall                                    | Number - `%rax` | `%rdi`             | `%rsi`       | `%rdx`      | `%r10` | `%r8` | `%r9` | Returns (in `%rax`)           |
+| ------------------------------------------ | --------------- | ------------------ | ------------ | ----------- | ------ | ----- | ----- | ----------------------------- |
+| Exit                                       | 60 - `0x3c`     | code               |              |             |        |       |       | -                             |
+| Seconds since epoch (1 Jan 1970)           | 201 - `0xc9`    | pointer to 64 bits |              |             |        |       |       | same pointer passed in `%rdi` |
+| Write ASCII data (without null terminator) | 1 - `0x01`      | file descriptor    | data pointer | data length |        |       |       |                               |
+
+Unused parameters will be ignored.
+
+Most registers are preserved, with the following exceptions:
+
+- `syscall` clobbers `%rcx` (with next instruction to execute upon return)
+- `syscall` clobbers `%r11` (with contents of `%eflags`)
+- Return value will be stored in `%rax`
+
+Docs on syscalls:
+
+- `man 2 syscalls`.
+- `man 2 [name]` - where `[name]` is the name of the syscall.
+- https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/
+
+### File descriptors
+
+OS gives files you open a number (file descriptors).
+
+- `0`: StdIn - often input from keyboard
+- `1`: StdOut - often output to console
+- `2`: StdErr - often also output to console
 
 ### x86 vs x86-64
 
