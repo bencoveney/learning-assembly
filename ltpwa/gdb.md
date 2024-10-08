@@ -6,9 +6,15 @@ as source.s -o ./output/object.o
 ld ./output/object.o -o ./output/executable
 ./output/executable
 
+gcc source.s -static -o ./output/executable
+./output/executable
+
 # Compiling with debug symbols, and debugging.
 as source.s --gdwarf-2 -o ./output/object.o
 ld ./output/object.o -o ./output/executable
+gdb ./output/executable
+
+gcc source.s -g -static -o ./output/executable
 gdb ./output/executable
 ```
 

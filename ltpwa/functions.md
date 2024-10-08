@@ -23,6 +23,7 @@ Docs on syscalls:
 - `man 2 syscalls`.
 - `man 2 [name]` - where `[name]` is the name of the syscall.
 - https://www.chromium.org/chromium-os/developer-library/reference/linux-constants/syscalls/
+- https://blog.rchapman.org/posts/Linux_System_Call_Table_for_x86_64/
 
 ### File descriptors
 
