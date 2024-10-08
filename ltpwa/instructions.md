@@ -84,17 +84,6 @@ Migrated from `int 0x80` to `syscall`. Restructuring allowed:
 - Perf improvements.
 - Register changes (for even more perf).
 
-## Assembler Directives
-
-| Syntax                 | Behaviour                                                                                           |
-| ---------------------- | --------------------------------------------------------------------------------------------------- |
-| `.section .text`       | Preceeding region of instructions, for inclusion in a code section/segment.                         |
-| `.section .data`       | Preceeding region of global variables, for inclusion in a static value code/segment.                |
-| `.globl [label]`       | Designate a label/constant as global. It will be exported/available to other files when assembling. |
-| `.equ [name], [value]` | Creates a assembler-time constant with the given name. `value` can include some basic computation.  |
-| `.type [name], [type]` | Annotates a symbol with its type, e.g. `function`, `object`                                         |
-| `[label]:`             | Define a label. Ends up just pointing to an address in memory.                                      |
-
 ## Big Integer Addition
 
 - Load least significant bits.

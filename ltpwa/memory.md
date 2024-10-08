@@ -146,22 +146,6 @@ movq VALUE(%rbx, %rdi, 2), %rax
 - Then step `%rdi` times, with steps of size `2`.
 - Load the _value_ at that final location into `%rax`
 
-## Data Sections
-
-```gas
-label:
-  .size value [, value, value...]
-```
-
-Can be read from and written to. Generally need to move values to registers to use/manipulate them.
-
-### Sizes
-
-| Directive | Size    |
-| --------- | ------- |
-| `.byte`   | 1 byte  |
-| `.quad`   | 4 bytes |
-
 ### Lists
 
 ```gas

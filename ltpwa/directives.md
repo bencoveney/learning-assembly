@@ -1,0 +1,85 @@
+# Assembler Directives
+
+| Syntax                          | Behaviour                                                                                           |
+| ------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `.section [kind]`               | Preceeding region of instructions, for inclusion in a code section/segment.                         |
+| `.globl [label]` (or `.global`) | Designate a label/constant as global. It will be exported/available to other files when assembling. |
+| `.external [label]`             | Identify a label as being provided by another file. Has no effect, as GNU Assembler assumes this.   |
+| `.equ [name], [value]`          | Creates a assembler-time constant with the given name. `value` can include some basic computation.  |
+| `.type [name], [type]`          | Annotates a symbol with its type, e.g. `function`, `object`                                         |
+| `[label]:`                      | Define a label. Ends up just pointing to an address in memory.                                      |
+
+## Data Sections
+
+```gas
+label:
+  .type value [, value, value...]
+```
+
+Can be read from and written to. Generally need to move values to registers to use/manipulate them.
+
+### Section Types
+
+| Directive          | Shorthand | Description                                        | Uses                                                   |
+| ------------------ | --------- | -------------------------------------------------- | ------------------------------------------------------ |
+| `.section .text`   | `.text`   | Code                                               | Code                                                   |
+| `.section .data`   | `.data`   | Memory space and/or values, modifiable at run-time |                                                        |
+| `.section .rodata` |           | Memory space and/or values, read-only at run-time  |                                                        |
+| `.section .bss`    |           | Memory space, modifiable at run-time               | Reserving space without taking it up in the executable |
+
+Examples:
+
+```gas
+.section .bss
+mydata:
+  .zero 1000
+
+.section .rodata
+myreadonlydata:
+  .quad 7
+```
+
+### Common Areas
+
+Shorthand for reserving space in the `.bss` section.
+
+- `.lcomm [label], [bytes]` - Reserves `[bytes]` space as `[label]`, local to the current file, but can be marked `.globl`.
+- `.comm [label], [bytes]` - Reserves `[bytes]` space as `[label]`, will be merged if also defined in other files.
+
+### Data Types
+
+| Directive        | Size                                                     |
+| ---------------- | -------------------------------------------------------- |
+| `.byte`          | 1 byte                                                   |
+| `.2byte`         | 2 bytes                                                  |
+| `.short`         | 2 bytes                                                  |
+| `.4byte`         | 4 bytes                                                  |
+| `.int`           | 4 bytes                                                  |
+| `.long`          | 4 bytes                                                  |
+| `.8byte`         | 8 bytes                                                  |
+| `.quad`          | 8 bytes                                                  |
+| `.ascii`         | Length of string, in bytes                               |
+| `.skip [bytes]`  | Empty space with the given size                          |
+| `.space [bytes]` | Empty space with the given size                          |
+| `.zero [bytes]`  | Empty space with the given size                          |
+| `.ascii`         | An ASCII string, where each character is 1 byte          |
+| `.string`        | An ASCII string, with a null byte automatically appended |
+| `.asciz`         | An ASCII string, with a null byte automatically appended |
+
+## Data Alignment
+
+Many instructions prefer (i.e. will be faster) working from data that is at an address which is
+a multiple of the word size (e.g. 64 bits - 8 bytes).
+
+Instuctions themselves can also prefer to be aligned, e.g. if they will be commonly jumped to.
+
+Some instructions require alignment on the stack. Some vector instructions will require 16 byte
+alignment. For these reasons, space on the stack is always reserved in multiples of 16 bytes.
+
+Spacing will be `0` in a data section or `nop` in a code section.
+
+| Directive             | Meaning                                                    | Example                                 |
+| --------------------- | ---------------------------------------------------------- | --------------------------------------- |
+| `.b2align [multiple]` | Align the next address to a multiple of `[multiple]` bytes | `.b2align 8` gives alignment to 8 bytes |
+| `.p2align [exponent]` | Align the next address to `2^[exponent]` bytes             | `.p2align 3` gives alignment to 8 bytes |
+| `.align`              | Probs avoid. Acts like `.b2align` most of the time         |                                         |
