@@ -8,6 +8,9 @@
 | `.equ [name], [value]`          | Creates a assembler-time constant with the given name. `value` can include some basic computation.  |
 | `.type [name], [type]`          | Annotates a symbol with its type, e.g. `function`, `object`                                         |
 | `[label]:`                      | Define a label. Ends up just pointing to an address in memory.                                      |
+| `.include "[file]"`             | Include a `[file]`. Included files shouldn't contain `.globl`                                       |
+| `.incbin "[file]"`              | Include a `[file]` verbatim as binary.                                                              |
+| `.cfi_...`                      | Control flow integrity directives, tell debuggers about the intended flow.                          |
 
 ## Data Sections
 
@@ -23,8 +26,8 @@ Can be read from and written to. Generally need to move values to registers to u
 | Directive          | Shorthand | Description                                        | Uses                                                   |
 | ------------------ | --------- | -------------------------------------------------- | ------------------------------------------------------ |
 | `.section .text`   | `.text`   | Code                                               | Code                                                   |
-| `.section .data`   | `.data`   | Memory space and/or values, modifiable at run-time |                                                        |
-| `.section .rodata` |           | Memory space and/or values, read-only at run-time  |                                                        |
+| `.section .data`   | `.data`   | Memory space and/or values, modifiable at run-time | Predefined global variables                            |
+| `.section .rodata` |           | Memory space and/or values, read-only at run-time  | Predefined global constants                            |
 | `.section .bss`    |           | Memory space, modifiable at run-time               | Reserving space without taking it up in the executable |
 
 Examples:
@@ -46,7 +49,7 @@ Shorthand for reserving space in the `.bss` section.
 - `.lcomm [label], [bytes]` - Reserves `[bytes]` space as `[label]`, local to the current file, but can be marked `.globl`.
 - `.comm [label], [bytes]` - Reserves `[bytes]` space as `[label]`, will be merged if also defined in other files.
 
-### Data Types
+## Data Types
 
 | Directive        | Size                                                     |
 | ---------------- | -------------------------------------------------------- |
@@ -83,3 +86,22 @@ Spacing will be `0` in a data section or `nop` in a code section.
 | `.b2align [multiple]` | Align the next address to a multiple of `[multiple]` bytes | `.b2align 8` gives alignment to 8 bytes |
 | `.p2align [exponent]` | Align the next address to `2^[exponent]` bytes             | `.p2align 3` gives alignment to 8 bytes |
 | `.align`              | Probs avoid. Acts like `.b2align` most of the time         |                                         |
+
+## Type Annotations
+
+Can be helpful for debugging.
+
+```gas
+.globl myvar, myfunc
+.type myvar, @object
+.type myfunc, @function
+
+.section .data
+myvar:
+  .quad 0
+
+.section .text
+myfunc:
+  # ... Code ...
+  ret
+```
