@@ -4,11 +4,12 @@
 
 Places program on hold and switches control to the operating system kernel.
 
-| Syscall                                    | Number - `%rax` | `%rdi`             | `%rsi`       | `%rdx`      | `%r10` | `%r8` | `%r9` | Returns (in `%rax`)           |
-| ------------------------------------------ | --------------- | ------------------ | ------------ | ----------- | ------ | ----- | ----- | ----------------------------- |
-| Exit                                       | 60 - `0x3c`     | code               |              |             |        |       |       | -                             |
-| Seconds since epoch (1 Jan 1970)           | 201 - `0xc9`    | pointer to 64 bits |              |             |        |       |       | same pointer passed in `%rdi` |
-| Write ASCII data (without null terminator) | 1 - `0x01`      | file descriptor    | data pointer | data length |        |       |       |                               |
+| Name    | Syscall                                     | `%rax`       | `%rdi`               | `%rsi`       | `%rdx`      | `%r10`, `%r8`, `%r9` | Returns (in `%rax`)           |
+| ------- | ------------------------------------------- | ------------ | -------------------- | ------------ | ----------- | -------------------- | ----------------------------- |
+| `write` | Write ASCII data (w/o null terminator)      | 1 - `0x01`   | file descriptor      | data pointer | data length |                      |                               |
+| `brk`   | Move the program break (to allocate memory) | 12 - `0x0b`  | desired address or 0 |              |             |                      | Current address if 0 passed   |
+| `exit`  | Exit the program with exit code             | 60 - `0x3c`  | code                 |              |             |                      | -                             |
+| `time`  | Seconds since epoch (1 Jan 1970)            | 201 - `0xc9` | pointer to 64 bits   |              |             |                      | same pointer passed in `%rdi` |
 
 Unused parameters will be ignored.
 
@@ -63,45 +64,6 @@ Notes
 - Helpful for avoiding clobbering registers.
   - Can be pushed/popped from the stack when calling out to other functions.
 - Need to remember to clean it up after use (e.g. everything pushed should be popped).
-
-### Memory Layout
-
-```
-High memory     +----------+ "bottom of the stack"
-addresses       | inactive |
-(top of memory) |  stack   |
-                |  frame   | <- Return address
-                +----------+
-                | inactive |
-                |  stack   |
-                |  frame   | <- Return address
-           |    +----------+
-    Stack  |    |  active  | <- Base pointer `%ebp`
-    grows  |    |  stack   |
-    down   |    |  frame   | <- Stack pointer `%esp`
-           |    +----------+ "top of the stack"
-           V    |          |
-                |          |
-                |          |
-                |          |
-                |          |
-                |          |
-           ^    |          |
-           |    +----------+
-    Heap   |    |          |
-    grows  |    | heap     |
-    up     |    |          |
-           |    +----------+
-                | static   |
-                | data     |
-                | (bss)    |
-                +----------+
-                | program  |
-Low memory      | text     |
-addresses       +----------+
-(bottom         | reserved |
-of memory)      +----------+
-```
 
 ### Stack Frame Layout
 

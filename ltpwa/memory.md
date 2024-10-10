@@ -397,3 +397,102 @@ To obtain a negative value (`negq` instruction): Flip all the bits and add 1
 
 - e.g. `5` = `0b00000101` => `0b11111010` => `0b11111011` = `-5`
 - e.g. `-5` = `0b11111011` => `0b00000100` => `0b00000101` = `5`
+
+## Memory Layout
+
+- Memory arranged into physical blocks called pages.
+- OS's use virtual memory to keep process isolated. Manages assignment of pages to programs.
+  - Some pages can be offloaded from RAM to Hard Drive (swap space).
+- We see pointers to virtual addresses (in our "address space"), rather than actual physical memory addresses.
+- 64 bit addresses mean 16 exibytes of addressable RAM. In practice Linux is limited to 47 bits (128 terabytes).
+
+Linux process layout is roughly:
+
+- _Unmapped_ + kernel shared memory (inaccessible)
+- The stack
+- _Unmapped_
+- Dynamically loaded libraries
+- _Unmapped_
+- The heap
+- _Unmapped_
+- Uninitized data (`.bss`)
+- Global data (`.data`)
+- Read-only data (`.rodata`)
+- Program code (`.text`)
+- Reserved kernel memory (inaccessible)
+
+Unmapped regions can be randomized for security.
+
+```
+High memory     +----------+ "bottom of the stack"
+addresses       | inactive |
+(top of memory) |  stack   |
+                |  frame   | <- Return address
+                +----------+
+                | inactive |
+                |  stack   |
+                |  frame   | <- Return address
+           |    +----------+
+    Stack  |    |  active  | <- Base pointer `%ebp`
+    grows  |    |  stack   |
+    down   |    |  frame   | <- Stack pointer `%esp`
+           |    +----------+ "top of the stack"
+           V    |          |
+                |          |
+                |          |
+                |          |
+                |          |
+                |          |
+           ^    |          |
+           |    +----------+
+    Heap   |    |          |
+    grows  |    | heap     |
+    up     |    |          |
+           |    +----------+
+                | static   |
+                | data     |
+                | (bss)    |
+                +----------+
+                | program  |
+Low memory      | text     |
+addresses       +----------+
+(bottom         | reserved |
+of memory)      +----------+
+```
+
+## The Heap
+
+Program can request memory as it runs, which OS _may_ allocate if available. This will make more
+addresses available to your program. The "Program Break" is the point where the valid addresses end
+for your program - and can be moved by the OS.
+
+### C Malloc and Free
+
+- C allocates some memory.
+- Program asks C for some memory (`malloc` - memory allocate).
+- If there is memory free, it will be granted.
+- C may ask OS for more (ie ask to move the program break) to satisfy request.
+- After memory is used, the program can call `free` to return the memory to C.
+
+`malloc`:
+
+- Takes 1 argument, the amount of memory to reserve.
+- Returns the address of the allocated memory.
+
+`free`:
+
+- Takes 1 argument, the memory to free.
+- Returns nothing.
+
+Need to obey these rules:
+
+- `free` anything you `malloc`.
+- Don't use pointers to memory which have been `free`-d.
+- Don't `free` an address which wasn't allocated by `malloc`.
+- Don't call `free` on the same address multiple times.
+
+Things that can go wrong:
+
+- "Memory Leak" - Allocating memory without freeing it.
+- "Buffer Overflow" - Writing beyond a heap-allocated buffer.
+- "Stack Overflow" - Writing beyond a stack-allocated buffer(?).

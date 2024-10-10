@@ -38,6 +38,6 @@ gcc 2_12_stdoutwrite.c -static -o ./output/2_12_stdoutwrite_c
 ./output/2_12_stdoutwrite_c
 echo $?
 
-gcc 2_12_exponentscanf.s 2_11_exponentfunc.s -g -static -o ./output/2_12_exponentscanf
+gcc 2_12_exponentscanf.s 2_11_exponentfunc.s -static -o ./output/2_12_exponentscanf
 ./output/2_12_exponentscanf
 echo $?
