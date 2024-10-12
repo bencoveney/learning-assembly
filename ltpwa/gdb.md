@@ -16,6 +16,9 @@ gdb ./output/executable
 
 gcc source.s -g -static -o ./output/executable
 gdb ./output/executable
+
+# Stripping debug information
+strip ./output/executable
 ```
 
 ## Commands

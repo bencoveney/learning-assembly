@@ -98,21 +98,21 @@ Most significant bits                          Least significant bits
 
 ## Values
 
-| Example                      | Addressing Mode                           | Notes                                                              |
-| ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
-| `$5`                         | Immediate mode                            | Value of 5 in decimal                                              |
-| `$0b0101`                    | Immediate mode                            | Value of 5 in binary                                               |
-| `$0x05`                      | Immediate mode                            | Value of 5 in hexidecimal                                          |
-| `$05`                        | Immediate mode                            | Value of 5 in octal (any number with a 0 prefix)                   |
-| `$'z'`                       | Immediate mode                            | ASCII value of the char literal 'z'                                |
-| `$label`                     | Immediate mode                            | Memory address of label                                            |
-| `%rax`                       | Register mode                             | Value from the register                                            |
-| `label`                      | Direct mode                               | Value (at the memory address) of label                             |
-| `(%rax)`                     | Register indirect mode                    | Looks up the value from the memory address stored in the register  |
-| `numbers(,%rbx,8)`           | Indexed mode                              | Look up the index-th value from the array at the specified address |
-| `offset(basepointer)`        | Base pointer mode (aka displacement mode) |                                                                    |
-| `offset(basepointer,%rbx,8)` | Base pointer indexed mode                 |                                                                    |
-|                              | Program counter relative mode             |                                                                    |
+| Example                      | Addressing Mode                           | Notes                                                                                      |
+| ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------------------------------ |
+| `$5`                         | Immediate mode                            | Value of 5 in decimal                                                                      |
+| `$0b0101`                    | Immediate mode                            | Value of 5 in binary                                                                       |
+| `$0x05`                      | Immediate mode                            | Value of 5 in hexidecimal                                                                  |
+| `$05`                        | Immediate mode                            | Value of 5 in octal (any number with a 0 prefix)                                           |
+| `$'z'`                       | Immediate mode                            | ASCII value of the char literal 'z'                                                        |
+| `$label`                     | Immediate mode                            | Memory address of label                                                                    |
+| `%rax`                       | Register mode                             | Value from the register                                                                    |
+| `label`                      | Direct mode                               | Value (at the memory address) of label                                                     |
+| `(%rax)`                     | Register indirect mode                    | Looks up the value from the memory address stored in the register                          |
+| `numbers(,%rbx,8)`           | Indexed mode                              | Look up the index-th value from the array at the specified address                         |
+| `offset(basepointer)`        | Base pointer mode (aka displacement mode) |                                                                                            |
+| `offset(basepointer,%rbx,8)` | Base pointer indexed mode                 |                                                                                            |
+| `label(%rip)`                | Program counter relative mode             | Uses labelled data offsets relative to the instruction, allowing position-independent code |
 
 ### General addressing mode
 
