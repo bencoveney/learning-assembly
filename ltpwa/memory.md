@@ -496,3 +496,62 @@ Things that can go wrong:
 - "Memory Leak" - Allocating memory without freeing it.
 - "Buffer Overflow" - Writing beyond a heap-allocated buffer.
 - "Stack Overflow" - Writing beyond a stack-allocated buffer(?).
+
+### brk
+
+Asks the OS to move the program break, effectively allocating more memory.
+
+### mmap
+
+Asks the OS to allocate a larger block of memory. Memory will be allocated in page-size increments
+(4096 bytes on x86-64) - if you request other sizes the OS will round up to that size. Target
+address can be specified, but Linux can/will override your request.
+
+mmap is extremely flexible, e.g. you can use it to map files to memory (with reading + writing).
+
+Parameters:
+
+- `%rax`: `0x09` as the system call number.
+- `%rdi`: Requested target address.
+  - If provided, Linux can override it.
+  - If null, let Linux decide.
+- `%rsi`: Length of allocation.
+  - In bytes.
+  - Best to be a multiple of 4096 as this is what will be allocated.
+- `%rdx`: Protection flags - Many available:
+  - `0x01` for read-only.
+  - `0x03` for read-write.
+- `%r10`: General flags - Many available:
+  - `MAP_PRIVATE` flag (`0x02`) for most purposes.
+  - `MAP_ANONYMOUS` flag (`0x20`) if not file based - Linux will ignore the file descriptor.
+- `%r8`: File descriptor.
+  - If mapping a file, the file descriptor from a previous system call.
+  - If not mapping a file, this should be -1.
+- `%r9`: Offset.
+  - If mapping a file, where within the file should you start.
+  - If not mapping a file, this should be 0.
+
+Returns (in `%rax`):
+
+- If successful, the memory address of the allocated memory.
+- If not, -1.
+
+Example 0 requesting a memory block that is 2 pages long:
+
+```gas
+movq $9, %rax    # mmap syscall number
+movq $0, %rdi    # Linux chooses destination
+movq $8192, %rsi # Two pages of memory
+movq $0x03, %rdx # Memory should be read-write
+movq $0x22, %r10 # Requesting private memory not tied to a file
+movq $-1, %r8    # No file descriptor attached
+movq $0, %r9     # No offset required
+syscall
+# Result in %rax
+```
+
+munmap returns memory to the operating system. - accepts:
+
+- `%rax`: `0x0b` as the system call number.
+- `%rdi`: Memory address to unmap.
+- `%rsi`: Size of memory to unmap.

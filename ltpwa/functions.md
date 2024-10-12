@@ -4,12 +4,14 @@
 
 Places program on hold and switches control to the operating system kernel.
 
-| Name    | Syscall                                     | `%rax`       | `%rdi`               | `%rsi`       | `%rdx`      | `%r10`, `%r8`, `%r9` | Returns (in `%rax`)           |
-| ------- | ------------------------------------------- | ------------ | -------------------- | ------------ | ----------- | -------------------- | ----------------------------- |
-| `write` | Write ASCII data (w/o null terminator)      | 1 - `0x01`   | file descriptor      | data pointer | data length |                      |                               |
-| `brk`   | Move the program break (to allocate memory) | 12 - `0x0b`  | desired address or 0 |              |             |                      | Current address if 0 passed   |
-| `exit`  | Exit the program with exit code             | 60 - `0x3c`  | code                 |              |             |                      | -                             |
-| `time`  | Seconds since epoch (1 Jan 1970)            | 201 - `0xc9` | pointer to 64 bits   |              |             |                      | same pointer passed in `%rdi` |
+| Name     | Syscall                                     | `%rax`       | `%rdi`               | `%rsi`       | `%rdx`           | `%r10`, `%r8`, `%r9`                   | Returns (in `%rax`)           |
+| -------- | ------------------------------------------- | ------------ | -------------------- | ------------ | ---------------- | -------------------------------------- | ----------------------------- |
+| `write`  | Write ASCII data (w/o null terminator)      | 1 - `0x01`   | file descriptor      | data pointer | data length      |                                        |                               |
+| `mmap`   | Ask for a block of memory                   | 9 - `0x09`   | desired address      | length       | protection flags | general flags, file descriptor, offset | Allocated address, or -1      |
+| `munmap` | Free a block of memory                      | 11 - `0x0b`  | desired address      | length       | protection flags | general flags, file descriptor, offset | Allocated address, or -1      |
+| `brk`    | Move the program break (to allocate memory) | 12 - `0x0c`  | desired address or 0 |              |                  |                                        | Current address if 0 passed   |
+| `exit`   | Exit the program with exit code             | 60 - `0x3c`  | code                 |              |                  |                                        | -                             |
+| `time`   | Seconds since epoch (1 Jan 1970)            | 201 - `0xc9` | pointer to 64 bits   |              |                  |                                        | same pointer passed in `%rdi` |
 
 Unused parameters will be ignored.
 
