@@ -131,3 +131,51 @@ void myfunc3() {
   throw_exception my_exception_code;
 }
 ```
+
+## Tail Call Elimination
+
+If one function ends with a call to another function, the stack frame doesn't need to be preserved
+for the original. This is important for recursive programming, where you can end up with lots of
+nested function calls.
+
+Typical flow:
+
+- Entering: `call FunctionA`
+- Inside `FunctionA`: `enter` - stack frame created
+- Inside `FunctionA`: Logic for `FunctionA`
+- Inside `FunctionA`: `call FunctionB`
+- Inside `FunctionB`: `enter` - stack frame created
+- Inside `FunctionB`: Logic for `FunctionB`
+- Inside `FunctionB`: `leave` - stack frame torn down
+- Inside `FunctionB`: `ret`
+- Inside `FunctionA`: `leave` - stack frame torn down
+- Inside `FunctionA`: `ret`
+
+With tail call elimintation:
+
+- Entering: `call FunctionA`
+- Inside `FunctionA`: `enter` - stack frame created
+- Inside `FunctionA`: Logic for `FunctionA`
+- Inside `FunctionA`: `leave` - stack frame torn down
+- Inside `FunctionA`: `jmp FunctionB`
+- Inside `FunctionB`: `enter` - stack frame created
+- Inside `FunctionB`: Logic for `FunctionB`
+- Inside `FunctionB`: `leave` - stack frame torn down
+- Inside `FunctionB`: `ret`
+
+Stack frames do not pile up, and a `ret` instruction has been eliminated. Some functions may not
+even need a stack frame if they don't touch local variables.
+
+```c
+int factorial(int value) {
+  return factorial_recursive(value, 1);
+}
+
+int factorial_recursive(int number, int value_so_far) {
+  if (number == 1) {
+    return value_so_far;
+    int curval = number * value_so_far;
+    return factorial(number - 1, curval);
+  }
+}
+```

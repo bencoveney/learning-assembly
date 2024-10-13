@@ -72,6 +72,7 @@
 | `popq`          |              |             | Pops a value from the stack and decrements `%rsp`                                                              |
 | `enter`         | numBytes\*   | numBytes\*  | Sets up a stack frame with `numBytes` of memory reserved. 2nd `numBytes` can be used for closures              |
 | `leave`         |              |             | Clears up a stack frame                                                                                        |
+| `endbr64`       |              |             | Intel Control-Flow Enforcement Technology - security measure                                                   |
 
 For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 

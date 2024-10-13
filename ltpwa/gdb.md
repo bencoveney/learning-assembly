@@ -132,3 +132,8 @@ layout regs
 ```
 
 https://sourceware.org/gdb/current/onlinedocs/gdb.html/TUI-Commands.html
+
+## See also
+
+- https://youtu.be/PorfLSr3DDI
+- https://sourceware.org/gdb/current/onlinedocs/gdb.html/Process-Record-and-Replay.html
