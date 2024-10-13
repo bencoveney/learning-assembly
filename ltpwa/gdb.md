@@ -23,35 +23,37 @@ strip ./output/executable
 
 ## Commands
 
-| Command                | Short      | Description                                      |
-| ---------------------- | ---------- | ------------------------------------------------ |
-| `run`                  | `r`        | Run the program                                  |
-| `break [line]`         | `b [line]` | Sets a breakpoint on a line                      |
-| `break [label]`        | `b _start` | Sets a breakpoint on a label (e.g `_start`)      |
-| `disable`              |            | Disable the breakpoint                           |
-| `enable`               |            | Enable the breakpoint                            |
-| `next`                 | `n`        | Single step over (without diving into functions) |
-| `step`                 |            | Single step in (diving into functions)           |
-| `list`                 | `l`        | Display the code                                 |
-| `print`                | `p`        | Display the value of a variable                  |
-| `quit`                 | `q`        | Exit GDB                                         |
-| `clear`                |            | Clear all breakpoints                            |
-| `continue`             |            | Continues normal execution                       |
-| `info breakpoints`     | `i b`      | See breakpoints                                  |
-| `info registers`       | `i r`      | See registers                                    |
-| `info stack`           | `i s`      | See stack                                        |
-| `info frame`           | `i f`      | See stack frame                                  |
-| `info files`           |            | See targets and files being debugged             |
-| `info variables`       |            | All local variables                              |
-| `info variables`       |            | All static/global variables                      |
-| `frame`                | `f`        |                                                  |
-| `info line`            |            | Display information about the current line       |
-| `info line [label]`    |            | Display information about a label (e.g `_start`) |
-| `info line +[offset]`  |            | Display information about an offset line         |
-| `backtrace`, `where`   | `bt`       |                                                  |
-| `disassemble`          |            | Dump function code                               |
-| `display [expression]` |            | Print an expression when the program stops       |
-| `display/i $pc`        |            | Print current instruction when the program stops |
+| Command                | Short      | Description                                        |
+| ---------------------- | ---------- | -------------------------------------------------- |
+| `run`                  | `r`        | Run the program                                    |
+| `break [line]`         | `b [line]` | Sets a breakpoint on a line                        |
+| `break [label]`        | `b _start` | Sets a breakpoint on a label (e.g `_start`)        |
+| `disable`              |            | Disable the breakpoint                             |
+| `enable`               |            | Enable the breakpoint                              |
+| `next`                 | `n`        | Single step lines, stepping over function          |
+| `nexti`                | `ni` (?)   | Single step instructions, stepping over function   |
+| `step`                 | `s`        | Single step lines, stepping in to functions        |
+| `stepi`                | `si`       | Single step instructions, stepping in to functions |
+| `list`                 | `l`        | Display the code                                   |
+| `print`                | `p`        | Display the value of a variable                    |
+| `quit`                 | `q`        | Exit GDB                                           |
+| `clear`                |            | Clear all breakpoints                              |
+| `continue`             |            | Continues normal execution                         |
+| `info breakpoints`     | `i b`      | See breakpoints                                    |
+| `info registers`       | `i r`      | See registers                                      |
+| `info stack`           | `i s`      | See stack                                          |
+| `info frame`           | `i f`      | See stack frame                                    |
+| `info files`           |            | See targets and files being debugged               |
+| `info variables`       |            | All local variables                                |
+| `info variables`       |            | All static/global variables                        |
+| `frame`                | `f`        |                                                    |
+| `info line`            |            | Display information about the current line         |
+| `info line [label]`    |            | Display information about a label (e.g `_start`)   |
+| `info line +[offset]`  |            | Display information about an offset line           |
+| `backtrace`, `where`   | `bt`       |                                                    |
+| `disassemble`          |            | Dump function code                                 |
+| `display [expression]` |            | Print an expression when the program stops         |
+| `display/i $pc`        |            | Print current instruction when the program stops   |
 
 ## Printing
 
@@ -88,7 +90,7 @@ strip ./output/executable
 | `x/b $pc`   | Examine 1 byte                                 |
 | `x/h $pc`   | Examine 2 bytes (half word)                    |
 | `x/w $pc`   | Examine 4 bytes (word)                         |
-| `x/g $pc`   | Examine 4 bytes (giant word)                   |
+| `x/g $pc`   | Examine 8 bytes (giant word)                   |
 | `x/[NFU]`   | Examine with all options                       |
 
 Defaults for `[F]` change any time you use Examine or Print.
@@ -106,6 +108,9 @@ x/3i $pc
 
 # From the location inside $rbx, print the null terminated ASCII string.
 x/s $rbx
+
+# Display 10 64 bit hex values in the stack each time the program stops
+display/10xg $sp
 ```
 
 ## Register names
@@ -118,3 +123,12 @@ Common register names across architectures
 | `$sp` | Stack pointer               |
 | `$fp` | Current stack frame pointer |
 | `$ps` | Processor status            |
+
+## TUI
+
+```shell
+tui enable
+layout regs
+```
+
+https://sourceware.org/gdb/current/onlinedocs/gdb.html/TUI-Commands.html

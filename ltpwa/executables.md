@@ -21,6 +21,7 @@ Tools:
 - `strip [path]` can be used to strip debugging information.
 - `objdump -X [path]` can be used to inspect ELF file-format metadata for Linux executables.
 - `objdump -R [path]` can be used to inspect linker relocations.
+- `objdump -d [path]` can be used to see disassembly.
 
 LDD output for a simple executable:
 
