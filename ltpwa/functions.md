@@ -1,5 +1,20 @@
 # Functions
 
+```
++------------------+
+| User Code        |
++----------------+ |
+| Std Lib        | |
++--------------+ | |
+| Syscalls     | | |
++------------+ | | |
+| OS (Linux) | | | |
++----------+ | | | |
+| Hardware | | | | |
+|          | | | | |
++----------+-+-+-+-+
+```
+
 ## Syscalls
 
 Places program on hold and switches control to the operating system kernel.

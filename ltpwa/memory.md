@@ -555,3 +555,14 @@ munmap returns memory to the operating system. - accepts:
 - `%rax`: `0x0b` as the system call number.
 - `%rdi`: Memory address to unmap.
 - `%rsi`: Size of memory to unmap.
+
+### Memory Pools
+
+Allocate/deallocate in groups, for example:
+
+- Server receives a request.
+- Server allocates memory (multiple times from a pool) for handling that request.
+- Server processes request and returns a response.
+- Server deallocates all memory (for that request's pool) at once.
+
+Useful for patterns where groups of allocations share a lifetime.
