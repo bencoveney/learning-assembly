@@ -566,3 +566,18 @@ Allocate/deallocate in groups, for example:
 - Server deallocates all memory (for that request's pool) at once.
 
 Useful for patterns where groups of allocations share a lifetime.
+
+### Reference Counting
+
+Reference counter stored on the memory saying how many parts of the program are using it.
+
+- Add one to counter when part of the program starts to use a piece of memory.
+- Subtract one from counter when part of the program stops using the piece of memory.
+- When the count drops to zero, it is done being used and can be derefereced.
+
+This adds overhead because the program repeatedly needs to add/remove from the counter.
+
+Can have problems if:
+
+- There are circular references, because those will maintain 1 on the counter.
+- A fresh object is returned from a function, what should its counter be?
