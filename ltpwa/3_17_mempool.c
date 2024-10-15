@@ -23,6 +23,10 @@ int main() {
 
   fprintf(stdout, "Allocations: %d, %d, %d, %d\n", a1, a2, a3, a4);
 
+  char *a5 = allocate(3, 32);
+
+  fprintf(stdout, "Allocations: %d, %d, %d, %d, %d\n", a1, a2, a3, a4, a5);
+
   fscanf(stdin, "%s", a4);
   fprintf(stdout, "%s", a4);
 }
