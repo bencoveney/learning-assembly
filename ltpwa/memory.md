@@ -581,3 +581,45 @@ Can have problems if:
 
 - There are circular references, because those will maintain 1 on the counter.
 - A fresh object is returned from a function, what should its counter be?
+
+### Garbage Collection
+
+Program allocates, but doesn't need to explicitly deallocate. The garbage collector performs sweeps
+and works out what is no longer being referenced by the rest of the program.
+
+- Walk all allocations and mark them all as free.
+- Start with a set of base memory regions:
+  - `.data`
+  - `.bss`
+  - The stack
+- Work out from there, looking for anything that looks like a pointer.
+- For any pointer found, push it onto the stack.
+- Iterate through the stack and:
+  - Walk through allocations and check if it is a real pointer.
+  - If it is a pointer, check if it is in use.
+    - If in use, skip
+    - If not in use, mark it as in use, and add any pointers within the block to the stack.
+
+By starting from a base region and working out, we avoid the problem of circular references (see
+reference counting).
+
+Relies on some assumptions to identify references between objects:
+
+- Pointers will be stored on 8 byte boundaries
+- When GC is called, there will not be any pointers in registers that aren't stored elsewhere.
+
+This GC design is "conservative" because it assumes anything that could be a pointer is a pointer.
+If we were in charge of the language we could make smarter decisions about what is/isn't a pointer.
+
+### Finalisers
+
+Sometimes you'd like to know when something is deallocated (and have an opportunity to run some
+code), e.g. to close a file when no longer in use.
+
+Also known as destructors. Can be added to any memory management system.
+
+Requirements:
+
+- Add a spot in the memory header to store a finalizer.
+- Add a function call to set the finalizer.
+- Execute the finalizer before deallocating.
