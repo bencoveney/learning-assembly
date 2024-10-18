@@ -179,3 +179,21 @@ int factorial_recursive(int number, int value_so_far) {
   }
 }
 ```
+
+## OOP
+
+A `vtable` is pointers to implementations of each function in an interface.
+
+Fat pointers are commonly passed around, which contain:
+
+- A pointer to the object.
+- A pointer to the `vtable`.
+
+## Reflection
+
+Each object/struct could have a pointer to a type as the first entry.
+
+## Duck Typing
+
+Objects could store links to _all_ functions on the object/struct, as a map. These can then be
+looked through at runtime.
