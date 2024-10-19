@@ -163,6 +163,10 @@ pushq $7
 call myfunc
 ```
 
+For floating-point parameters, they are passed in `%xmm0` to `%xmm7`. For functions which take a
+variable number of parameters (e.g. `fprintf`), the number of floating point parameters should be
+put into `%rax`.
+
 ### Return Values
 
 In the most common case (1 return value), it will be in `%rax`.
@@ -172,6 +176,8 @@ In the uncommon case (2+ return values):
 - The ABI allows `%rdx` to be used.
 - `%rax` can be a pointer to memory containing multiple values.
 - A pointer to memory can be passed as a parameter, which the function can populate.
+
+If the return value is a floating-point number, it will be returned in `%xmm0`
 
 ### Aligning the Stack
 

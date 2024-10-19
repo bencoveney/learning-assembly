@@ -63,23 +63,24 @@ Shorthand for reserving space in the `.bss` section.
 
 ## Data Types
 
-| Directive        | Size                                                     |
-| ---------------- | -------------------------------------------------------- |
-| `.byte`          | 1 byte                                                   |
-| `.2byte`         | 2 bytes                                                  |
-| `.short`         | 2 bytes                                                  |
-| `.4byte`         | 4 bytes                                                  |
-| `.int`           | 4 bytes                                                  |
-| `.long`          | 4 bytes                                                  |
-| `.8byte`         | 8 bytes                                                  |
-| `.quad`          | 8 bytes                                                  |
-| `.ascii`         | Length of string, in bytes                               |
-| `.skip [bytes]`  | Empty space with the given size                          |
-| `.space [bytes]` | Empty space with the given size                          |
-| `.zero [bytes]`  | Empty space with the given size                          |
-| `.ascii`         | An ASCII string, where each character is 1 byte          |
-| `.string`        | An ASCII string, with a null byte automatically appended |
-| `.asciz`         | An ASCII string, with a null byte automatically appended |
+| Directive        | Content               | Size                            |
+| ---------------- | --------------------- | ------------------------------- |
+| `.byte`          | Arbitrary             | 1 byte                          |
+| `.2byte`         | Arbitrary             | 2 bytes                         |
+| `.short`         | Arbitrary             | 2 bytes                         |
+| `.4byte`         | Arbitrary             | 4 bytes                         |
+| `.int`           | Int                   | 4 bytes                         |
+| `.long`          | Int                   | 4 bytes                         |
+| `.8byte`         | Int                   | 8 bytes                         |
+| `.quad`          | Int                   | 8 bytes                         |
+| `.single`        | Float                 | 4 Bytes                         |
+| `.double`        | Float                 | 8 Bytes                         |
+| `.skip [bytes]`  | Nothing               | Empty space with the given size |
+| `.space [bytes]` | Nothing               | Empty space with the given size |
+| `.zero [bytes]`  | Nothing               | Empty space with the given size |
+| `.ascii`         | ASCII String          | Length of string, in bytes      |
+| `.string`        | ASCII String + `null` | Length of string + 1, in bytes  |
+| `.asciz`         | ASCII String + `null` | Length of string + 1, in bytes  |
 
 ## Data Alignment
 

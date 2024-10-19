@@ -14,21 +14,24 @@ Some names are reused depending on context, which makes things confusing. "Words
 
 ## Registers
 
-| Register  | Purpose                 | Known as          | Use                                              | Subdivisions                        |
-| --------- | ----------------------- | ----------------- | ------------------------------------------------ | ----------------------------------- |
-| `%rax`    | General - Computational | Accumulator       | Most widely used for computation.                | `%rax`, `%eax`, `%ax`, `%ah`, `%al` |
-| `%rbx`    | General - Computational | Base              | Often used for indexed addressing.               | `%rbx`, `%ebx`, `%bx`, `%bh`, `%bl` |
-| `%rcx`    | General - Computational | Counter           | Often used for counts in loops.                  | `%rcx`, `%ecx`, `%cx`, `%ch`, `%cl` |
-| `%rdx`    | General - Computational | Data              | Special significance in some math/io operations. | `%rdx`, `%edx`, `%dx`, `%dh`, `%dl` |
-| `%rsi`    | General - Pointers      | Source index      | Used when working with longer spans of memory.   | `%rsi`, `%esi`, `%si`               |
-| `%rdi`    | General - Pointers      | Destination index | Used when working with longer spans of memory.   | `%rdi`, `%edi`, `%di`               |
-| `%rbp`    | General - Pointers      | Base pointer      | Used when working with longer spans of memory.   | `%rbp`, `%ebp`, `%bp`               |
-| `%rsp`    | General - Pointers      | Stack pointer     | Used when working with longer spans of memory.   | `%rsp`, `%esp`, `%sp`               |
-| `%r8`     | General                 |                   |                                                  | `%r8`, `%r8w`, `%r8w`, `%r8b`       |
-| ...       | ...                     | ...               | ...                                              | ...                                 |
-| `%r15`    | General                 |                   |                                                  | `%r15`, `%r15w`, `%r15w`, `%r15b`   |
-| `%rip`    | Special purpose         | Instruction       | Points to memory location of next instruction    | `%rip`                              |
-| `%eflags` | Special purpose         | Flags             | Holds status of previous operation               | 32-bit                              |
+| Register        | Purpose                 | Known as          | Use                                              | Subdivisions                        |
+| --------------- | ----------------------- | ----------------- | ------------------------------------------------ | ----------------------------------- |
+| `%rax`          | General - Computational | Accumulator       | Most widely used for computation.                | `%rax`, `%eax`, `%ax`, `%ah`, `%al` |
+| `%rbx`          | General - Computational | Base              | Often used for indexed addressing.               | `%rbx`, `%ebx`, `%bx`, `%bh`, `%bl` |
+| `%rcx`          | General - Computational | Counter           | Often used for counts in loops.                  | `%rcx`, `%ecx`, `%cx`, `%ch`, `%cl` |
+| `%rdx`          | General - Computational | Data              | Special significance in some math/io operations. | `%rdx`, `%edx`, `%dx`, `%dh`, `%dl` |
+| `%rsi`          | General - Pointers      | Source index      | Used when working with longer spans of memory.   | `%rsi`, `%esi`, `%si`               |
+| `%rdi`          | General - Pointers      | Destination index | Used when working with longer spans of memory.   | `%rdi`, `%edi`, `%di`               |
+| `%rbp`          | General - Pointers      | Base pointer      | Used when working with longer spans of memory.   | `%rbp`, `%ebp`, `%bp`               |
+| `%rsp`          | General - Pointers      | Stack pointer     | Used when working with longer spans of memory.   | `%rsp`, `%esp`, `%sp`               |
+| `%r8`           | General                 |                   |                                                  | `%r8`, `%r8w`, `%r8w`, `%r8b`       |
+| ...             | ...                     | ...               | ...                                              | ...                                 |
+| `%r15`          | General                 |                   |                                                  | `%r15`, `%r15w`, `%r15w`, `%r15b`   |
+| `%xmm0/%xmm1`   | SSE                     |                   | Floating point, SIMD                             | `%xmm0`, `%xmm1`                    |
+| ...             | ...                     | ...               | ...                                              | ...                                 |
+| `%xmm14/%xmm15` | SSE                     |                   | Floating point, SIMD                             | `%xmm14`, `%xmm15`                  |
+| `%rip`          | Special purpose         | Instruction       | Points to memory location of next instruction    | `%rip`                              |
+| `%eflags`       | Special purpose         | Flags             | Holds status of previous operation               | 32-bit                              |
 
 ### Register sizes
 
@@ -397,6 +400,51 @@ To obtain a negative value (`negq` instruction): Flip all the bits and add 1
 
 - e.g. `5` = `0b00000101` => `0b11111010` => `0b11111011` = `-5`
 - e.g. `-5` = `0b11111011` => `0b00000100` => `0b00000101` = `5`
+
+## Floating-Point Numbers
+
+Decimal numbers are stored at a fixed level of precision, in 3 parts:
+
+- Sign
+- Exponent
+- Mantissa
+
+E.g: `1.2345.2` Can be represented as:
+
+- Sign: Positive
+- Mantissa: 1.23452
+- Exponent: 4
+
+However, computers work in base 2, so all numbers are stored as IEEE 754 floats:
+
+```
++/- X.XXXXX * 2^X.XXXX
+```
+
+| Wordsize | Sign  | Mantissa | Exponent |
+| -------- | ----- | -------- | -------- |
+| 64 bit   | 1 bit | 52 bits  | 11 bits  |
+| 32 bit   | 1 bit | 23 bits  | 8 bits   |
+
+Can lead to weird cases, E.g: `1 + 16777216.0` is not significant enough to make a change. Can lead
+to scenarios where the order of operations impacts the output.
+
+Computers are much slower at floating-point operations than integers.
+
+### SSE Registers
+
+SSE is "Streaming SIMD Extensions", and SIMD is "Single Instruction Multiple Data".
+
+Initial registers (for floating point) were `%mm0` to `%mm7` - each 64 bits wide. They are still
+present and can be used
+
+Current registers are `%xmm0` to `%xmm15`, which form 8 double-wide registers. Each one can be
+"Packed" and treated as:
+
+- 2 64-bit values.
+- 4 32-bit values.
+- 8 16-bit values.
+- 16 8-bit values.
 
 ## Memory Layout
 

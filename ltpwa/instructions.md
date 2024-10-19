@@ -73,6 +73,7 @@
 | `enter`         | numBytes\*   | numBytes\*  | Sets up a stack frame with `numBytes` of memory reserved. 2nd `numBytes` can be used for closures              |
 | `leave`         |              |             | Clears up a stack frame                                                                                        |
 | `endbr64`       |              |             | Intel Control-Flow Enforcement Technology - security measure                                                   |
+| `cvtsi2sd`      | source       | destination | Converts an int (stored in a general register) to a float (in an `xmm` register)                               |
 
 For source/dest instructions (mov, add, sub etc) typically one operand (but not both) can be a memory address
 
@@ -303,3 +304,62 @@ _start
 
   # Length can now be loaded into %rcx for use copying etc...
 ```
+
+## Floating-Point Instructions
+
+For converting:
+
+- `cvtsi2sd`
+  - **c**on**v**er**t** a **s**ingle value that is an **i**nteger to (**2**) a **s**calar
+    **d**ouble-precision floating-point value.
+  - From a general register, to an `%xmm` register.
+- `cvtsd2si`
+  - **c**on**v**er**t** a **s**calar **d**ouble-precision floating-point value to (**2**) a
+    **s**ingle value that is an **i**nteger.
+  - From an `%xmm` register, to a general register.
+- `cvtss2sd`
+  - **c**on**v**er**t** a **s**calar **s**ingle-precision floating-point value to (**2**) a
+    **s**calar **d**ouble-precision floating-point value.
+- `cvtsd2ss`
+  - **c**on**v**er**t** a **s**calar **d**ouble-precision floating-point value to (**2**) a
+    **s**calar **s**ingle-precision floating-point value.
+
+For moving values in:
+
+- `movq` into the lower 64 bits (clears the top 64 bits).
+- `movsd` into the lower 64 bits (retains the top 64 bits).
+- `movss` into the lower 32 bits (retains the top 32 bits).
+- `movdqu` moves 4 unaligned values (optimised for integers).
+- `movdqa` moves 4 aligned values (optimised for integers).
+- `movups` moves 4 unaligned values (optimised for floating points).
+- `movaps` moves 4 aligned values (optimised for floating points).
+
+Aligned values will be quicker to move.
+
+Operations on the registers occur for all values simultaneously.
+
+For most math operations there is a `...sd` variant for working with **s**calar
+**d**ouble-precision values. For single-precision (32-bits) the suffix is `...ss`
+
+- `addsd %xmm0, %xmm1` adds the values and stores in `%xmm1`.
+- `mulsd %xmm0, %xmm1` adds the values and stores in `%xmm1`.
+- `divsd %xmm0, %xmm1` does `%xmm1 / %xmm0 `and stores in `%xmm1`.
+
+For most math operations, there is a `...pd` variant for working with **p**acked
+**d**ouble-precision values. For single-precision (32-bits) the suffix is `ps`
+
+- `addpd %xmm0, %xmm1` adds the values and stores in `%xmm1` for each packed value.
+- `mulpd %xmm0, %xmm1` adds the values and stores in `%xmm1` for each packed value.
+- `divpd %xmm0, %xmm1` does `%xmm1 / %xmm0 `and stores in `%xmm1` for each packed value.
+
+For most math operations, there is a `...pd` variant for working with **p**acked integer values.
+
+- `paddb` for 1 byte integers.
+- `paddw` for 2 byte integers.
+- `paddd` for 4 byte integers.
+- `paddq` for 8 byte integers.
+
+For shifting values (packing):
+
+- `pslldq [bytes], [register]` - shifts the register left by N bytes.
+- `psrldq [bytes], [register]` - shifts the register right by N bytes.
