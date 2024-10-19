@@ -262,6 +262,50 @@ You can have literal ASCII chars in assembly, e.g.:
 movb $'a', %al
 ```
 
+## Unicode
+
+Wider set of values compared to ASCII (32 bits vs 7 bits).
+
+Referenced as `U+[hex]`, where hex is (up to) 4 hexidecimal characters. This is known as the
+character's "code point". All characters have a code point, but not all code points have a
+character.
+
+### Encoding
+
+Unicode code points can have different character encodings, for example:
+
+- In UTF-32, each character is 32 bits wide.
+- In UTF-8 (the most common), each character is 8 bits wide (with a variable number).
+
+Because different characters can end up with different numbers of bytes, you cannot count the data
+length and assume that maps to the character count. You will need to walk the length of the string.
+The same is true if you want to find the Nth character. You can take some shortcuts by looking at
+bits of the first byte, because they tell you about the length of the character.
+
+| Code Points             | Encoded Size | Format                                | Bits available |
+| ----------------------- | ------------ | ------------------------------------- | -------------- |
+| `U+0000` to `U+007F`    | 1 byte       | `0xxxxxxx`                            | 7              |
+| `U+0080` to `U+07FF`    | 2 byte       | `110xxxxx 10xxxxxx`                   | 11             |
+| `U+0800` to `U+FFFF`    | 3 byte       | `1110xxxx 10xxxxxx 10xxxxxx`          | 16             |
+| `U+10000` to `U+10FFFF` | 4 byte       | `11110xxx 10xxxxxx 10xxxxxx 10xxxxxx` | 21             |
+
+The advantage of UTF-8 is that it looks like (and is compatible with) ASCII for common subsets of
+characters - e.g. in ASCII the first bit of each byte is always 0.
+
+Encoding process:
+
+- Greek lowercase beta: `β`
+- Assigned Unicode code point: `U+03B2`
+- Codepoint mapped to bits: `1110110010`
+- Codepoint padded to 11 bits: `01110110010`
+- Codepoint slotted into 2 byte format: `11001110 10110010`
+- 2 bytes represented as hex: `0xCEB2`
+
+UTF-16 has a "byte order mark", which may look like `0xEFBBBF` when converted to UTF-8.
+
+No matter what string encoding you are dealing with, there may still be differences e.g.
+`LF`/`CRLF` line endings.
+
 ## Endianness
 
 x86-64 ia little endian.
