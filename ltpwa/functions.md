@@ -268,3 +268,33 @@ call thefunction
 
 ret
 ```
+
+## Initial stack values
+
+From high to low memory:
+
+- Null pointer
+- Pointer to the Nth environment variable (if present).
+- Pointer to the 2nd environment variable (if present).
+- Pointer to the 1st environment variable (if present).
+- Null pointer
+- Pointer to the Nth program argument (if present).
+- Pointer to the 2nd program argument (if present).
+- Pointer to the 1st program argument (if present).
+- Pointer to the program filename.
+- Command line argument count (including the command itself).
+
+These can be accessed using stack pointer offsets, e.g:
+
+```gas
+_start:
+  # Argument count.
+  movq 0(%rsp), %rax
+  # Pointer to program filename.
+  movq 8(%rsp), %rbx
+```
+
+Environment variables are stored as `KEY=VALUE`.
+
+Applies to `_start` rather than `main`, where C handles those, and provides `argv`, `argc`,
+`getenv`, `environ` etc.
