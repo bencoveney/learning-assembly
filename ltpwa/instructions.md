@@ -363,3 +363,50 @@ For shifting values (packing):
 
 - `pslldq [bytes], [register]` - shifts the register left by N bytes.
 - `psrldq [bytes], [register]` - shifts the register right by N bytes.
+
+## Instruction Formats
+
+Text form of instructions are the "mnemonics". Assembler converts these into numbers which the
+processor then interprets. In x86-64, instructions can have variable size, ranging from 1 byte to
+15 bytes.
+
+The numeric form of an instruction is the "opcode". Opcodes don't map 1-1 with mnemonics, sometimes
+there can be different opcodes to support different operands. E.g:
+
+- `movl` is `0x89` when: the source is a register.
+- `movl` is `0x8b` when: the source is memory.
+- `movl` is `0xb8` when: the source is an immediate-mode value.
+- `movq` is `0x89` with a REX prefix when: the source is a register.
+- `movq` is `0x8b` with a REX prefix when: the source is memory.
+- `movq` is `0xb8` with a REX prefix when: the source is an immediate-mode value.
+
+http://ref.x86asm.net/coder64.html
+http://ref.x86asm.net/coder64-abc.html
+
+Basic format:
+
+| Part         | Size                                         | Description                                       | Examples                     |
+| ------------ | -------------------------------------------- | ------------------------------------------------- | ---------------------------- |
+| Prefixes     | 1 byte for each                              | Modify instruction operation                      | `rep`, `repe`, `LOCK`, `REX` |
+| Opcode       | 1-3 bytes                                    | Which instruction to do                           | `movl`, `movq`               |
+| ModR/M       | 1 byte if required by the opcode             | Which registers and/or addressing mode            |                              |
+| SIB          | 1 byte if required by the opcode             | Which registers are scale, index and base         |                              |
+| Displacement | 1, 2, 4 or 8 bytes if required by the opcode | Entire address, or displacement from base pointer |                              |
+| Immediate    | 1, 2, 4 or 8 bytes if required by the opcode | Immediate mode value                              |                              |
+
+`LOCK` prefix tells processor that no other CPU should have access to a cache line.
+
+`REX` prefix allows some legacy (from 32-bit) instructions to work as 64-bit.
+
+Example: `movb $8, %ah` becomes `0xb4 0x08`:
+
+- There are different opcodes for each destination.
+  - `0xb0` is `%al`.
+  - `0xb4` is `%ah`.
+- Immediate value is `0x08`.
+
+Example: `movq $8, %rax` becomes `0x48 0xc7 0xc3 0x08 0x00 0x00 0x00`:
+
+- REX prefix is `0x48`
+- Opcode is `0xc7`
+- Immediate value is `0x08 0x00 0x00 0x00` (4 byte little-endian).
