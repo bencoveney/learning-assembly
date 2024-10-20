@@ -9,7 +9,7 @@
 - Design a novel or interesting programming language.
 - Learn how to build hardware.
 
-## Plan:
+## Plan
 
 - Figure out enough ASM to barely write a compiler.
 - Implement compiler in ASM (language to assembly).
@@ -17,6 +17,35 @@
 - Rewrite compiler pipeline in language.
 - Implement assembler (assembly to machine code, probably x86).
 - Implement linker (x86 to ELF).
+
+## Assmebly
+
+- "Programming from the ground up" book
+  - `/programming_ground_up`
+  - Half done, replaced with...
+- "Learn to Program with Assembly" book
+  - `/ltpwa`
+  - Done
+- Work through some basic assembly programs
+  - Allocator
+  - Sorting algorithms
+  - Game of life
+  - Polish notation processor
+  - Brainfuck interpreter
+  - Find information about environment
+    - Env vars
+    - Args
+    - Page size (system calls?)
+  - Data structures
+    - Fixed size array (arbitrary element size)
+    - Dynamic size array (arbitrary element size)
+  - File tokeniser
+  - Message logger with string interpolation
+    - Int parsing/stringification
+  - Static file server
+  - Challenges from
+    - Project Euler
+    - Advent of Code
 
 ## Language
 
