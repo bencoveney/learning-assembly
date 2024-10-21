@@ -7,8 +7,10 @@ logMessage:
 
 .section .text
 _start:
-  mov $logMessage, %rdi
+  movq $logMessage, %rdi
   call stringPrint
 
-  mov $0, %rdi
+  call allocate
+
+  movq $0, %rdi
   call exit

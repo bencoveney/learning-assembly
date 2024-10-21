@@ -21,6 +21,7 @@ stringLength:
   # Prepare to return the count of characters
   movq %rdi, %rax
   subq %r8, %rax
+  subq $1, %rax
 
   leave
   ret
