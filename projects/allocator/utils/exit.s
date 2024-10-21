@@ -9,7 +9,6 @@ exit:
 
   # Exit
   movq $SYSCALL_EXIT, %rax
-  movq $0, %rdi
   syscall
 
   leave

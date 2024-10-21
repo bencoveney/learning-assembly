@@ -10,7 +10,8 @@ _start:
   movq $logMessage, %rdi
   call stringPrint
 
+  movq $16, %rdi
   call allocate
 
-  movq $0, %rdi
+  movq %rax, %rdi
   call exit
