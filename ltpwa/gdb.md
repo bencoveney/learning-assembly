@@ -56,6 +56,7 @@ strip ./output/executable
 | `disassemble`          |             | Dump function code                                   |
 | `display [expression]` |             | Print an expression when the program stops           |
 | `display/i $pc`        |             | Print current instruction when the program stops     |
+| `undisplay [display]`  |             | Stop displaying a value                              |
 | `file [filename]`      |             | Load the executable program in `[filename]`          |
 
 ## Printing
@@ -114,6 +115,9 @@ x/s $rbx
 
 # Display 10 64 bit hex values in the stack each time the program stops
 display/10xg $sp
+
+# Display the value pointed at, by the value stored in 0x402000
+display *0x402000
 ```
 
 ## Register names

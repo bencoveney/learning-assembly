@@ -38,10 +38,29 @@ allocate:
   call roundToMultipleOf8
   movq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
 
+  # Calculate the new end of the heap.
   movq endOfHeap, %rdi
   addq %rax, %rdi
 
+  # Set it!
   call brk
+
+  # The heap has expanded, store the new end.
+  movq %rax, endOfHeap
+
+  # We only know how to allocate a single block at the moment, but we can set up the header.
+  # Main part of the header will be the size
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  # We will add 1 to the address, to indicate the block is allocated.
+  addq $0x1, %rdi
+  movq startOfHeap, %rax
+  movq %rdi, (%rax)
+
+  # Get ready to return the memory. To do that, we will need to:
+  # - Take the start of the block (currently the start of the heap)
+  movq startOfHeap, %rax
+  # - Offset it by the size of the header
+  addq $HEADER_SIZE, %rax
 
   leave
   ret
