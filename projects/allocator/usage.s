@@ -10,6 +10,15 @@ _start:
   movq $logMessage, %rdi
   call stringPrint
 
+  # Allocate!
+  movq $16, %rdi
+  call allocate
+
+  # Allocate again!
+  movq $16, %rdi
+  call allocate
+
+  # Allocate even more!
   movq $16, %rdi
   call allocate
 
