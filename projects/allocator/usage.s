@@ -18,6 +18,10 @@ _start:
   movq $16, %rdi
   call allocate
 
+  # Free what we just allocated
+  movq %rax, %rdi
+  call deallocate
+
   # Allocate even more!
   movq $16, %rdi
   call allocate

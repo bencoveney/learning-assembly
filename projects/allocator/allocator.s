@@ -46,7 +46,7 @@ allocate:
   jnz moveToNextBlock
 
   # Check if it is big enough
-  cmpq %rdi, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
+  cmpq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
   jbe blockFound
 
   moveToNextBlock:
@@ -70,6 +70,14 @@ allocate:
   jmp expandHeap
 
   blockFound:
+
+  # Mark the block as allocated.
+  addq $0x1, %rax
+  movq %rax, (%rcx)
+
+  # Return the pointer to the content
+  addq $HEADER_SIZE, %rcx
+  movq %rcx, %rax
 
   leave
   ret
@@ -127,6 +135,16 @@ expandHeap:
 # Param %rdi: The pointer to the beginning of the allocated memory.
 deallocate:
   enter $0, $0
+
+  # Grab the header
+  subq $HEADER_SIZE, %rdi
+  movq (%rdi), %rax
+
+  # Mask it off, so we just have the size
+  andq $0xfffffffffffffff8, %rax
+
+  # Write it back
+  movq %rax, (%rdi)
 
   leave
   ret
