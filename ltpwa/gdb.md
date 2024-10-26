@@ -113,6 +113,9 @@ x/3i $pc
 # From the location inside $rbx, print the null terminated ASCII string.
 x/s $rbx
 
+# Examine 16 1-byte chars at a given memory address.
+x/16cb 0x402017
+
 # Display 10 64 bit hex values in the stack each time the program stops
 display/10xg $sp
 
