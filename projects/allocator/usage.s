@@ -1,36 +1,17 @@
 .globl _start
 
-.section .data
-
-logMessage:
-  .ascii "Hello\n\0"
-
 .section .text
 _start:
 .equ LOCAL_ADDRESS_OF_ALLOCATION, -8
   enter $16, $0
 
-  movq $logMessage, %rdi
-  call stringPrint
-
-  movq $0, %rdi
-  call uintPrint
-
-  movq $10, %rdi
-  call uintPrint
-
-  movq $16, %rdi
-  call uintPrint
-
-  movq $-1, %rdi
-  call uintPrint
+  call debugHeap
 
   # Allocate!
   movq $16, %rdi
   call allocate
 
-  movq %rax, %rdi
-  call hexPrint
+  call debugHeap
 
   # Allocate again!
   movq $16, %rdi
@@ -38,20 +19,20 @@ _start:
 
   mov %rax, LOCAL_ADDRESS_OF_ALLOCATION(%rbp)
 
-  movq %rax, %rdi
-  call hexPrint
+  call debugHeap
 
   mov LOCAL_ADDRESS_OF_ALLOCATION(%rbp), %rdi
 
   # Free what we just allocated
   call deallocate
 
+  call debugHeap
+
   # Allocate even more!
   movq $16, %rdi
   call allocate
 
-  movq %rax, %rdi
-  call hexPrint
+  call debugHeap
 
   movq %rax, %rdi
   call exit

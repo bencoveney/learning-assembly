@@ -1,4 +1,4 @@
-.globl allocate, deallocate
+.globl allocate, deallocate, debugHeap
 
 .section .data
 
@@ -145,6 +145,94 @@ deallocate:
 
   # Write it back
   movq %rax, (%rdi)
+
+  leave
+  ret
+
+.section .data
+
+debugMessage:
+  .ascii "--------\n\nHeap Content\n\n\0"
+
+locationMessage:
+  .ascii "Block At\n\0"
+
+sizeMessage:
+  .ascii "Size\n\0"
+
+allocatedMessage:
+  .ascii "Allocated\n\n\0"
+
+freeMessage:
+  .ascii "Free\n\n\0"
+
+heapNotInitializedMessage:
+  .ascii "Heap Not Initialized\n\n\0"
+
+.section .text
+
+# Walks the heap and prints information about the chunks.
+debugHeap:
+.equ LOCAL_CURRENT_BLOCK, -8
+  enter $16, $0
+
+  movq $debugMessage, %rdi
+  call stringPrint
+
+  cmpq $0, startOfHeap
+  je heapNotInitialized
+
+  # Loop through blocks of memory until we find a free one. For the duration:
+  movq startOfHeap, %rcx
+  debugBlock:
+
+  mov %rcx, LOCAL_CURRENT_BLOCK(%rbp)
+
+  movq $locationMessage, %rdi
+  call stringPrint
+
+  mov LOCAL_CURRENT_BLOCK(%rbp), %rdi
+  call hexPrint
+
+  movq $sizeMessage, %rdi
+  call stringPrint
+
+  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq (%rcx), %rdi
+  andq $0xfffffffffffffff8, %rdi
+  call uintPrint
+
+  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq (%rcx), %rdi
+  andq $0x1, %rdi
+  jnz allocated
+
+  movq $freeMessage, %rdi
+  call stringPrint
+  jmp debugToNextBlock
+
+  allocated:
+  movq $allocatedMessage, %rdi
+  call stringPrint
+
+  debugToNextBlock:
+
+  # Grab the size again - could be refactored
+  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq (%rcx), %rdi
+  andq $0xfffffffffffffff8, %rdi
+  addq %rdi, %rcx
+  # Check if we have reached the end of the heap
+  cmpq endOfHeap, %rcx
+  jb debugBlock
+
+  leave
+  ret
+
+  heapNotInitialized:
+
+  movq $heapNotInitializedMessage, %rdi
+  call stringPrint
 
   leave
   ret
