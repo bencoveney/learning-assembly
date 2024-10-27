@@ -13,6 +13,18 @@ _start:
   movq $logMessage, %rdi
   call stringPrint
 
+  movq $0, %rdi
+  call uintPrint
+
+  movq $10, %rdi
+  call uintPrint
+
+  movq $16, %rdi
+  call uintPrint
+
+  movq $-1, %rdi
+  call uintPrint
+
   # Allocate!
   movq $16, %rdi
   call allocate
