@@ -7,32 +7,26 @@ pointer allocate(%rdi: size);
 void deallocate(%rdi: pointer);
 ```
 
-Implement a memory allocator, with the following features:
+### Allocation Scenarios
 
-- Header contains:
-  - Size.
-  - Link forward.
-- Footer contains:
-  - Link backward.
-- Allocate entrypoint
-  - If not initialized
-    - Run heap initialization
-  - Check for space on the heap
-    - Walk the allocated blocks, checking for available space
-  - If no space available
-    - Expand the heap
-  - Perform the allocation
-    - Update the header
-    - Add another header at the end of the block
-    - return the pointer
-- Deallocate entrypoint
-  - Mark the header block as free
-  - Merge empty blocks left
-  - Merge empty blocks right
-- General initialization
-  - Get the start of the heap
-  - That will also be the end
-  - Allocate enough memory for the initial allocation, plus a bit extra
+- [x] Expand the heap on inital allocation
+- When there are no free blocks which will fit the allocation:
+  - [x] Expand the heap to create a new block
+  - [ ] Expand the heap from the start of a trailing free block
+- When there are free blocks which will fit the allocation:
+  - [x] Allocate the existing block
+  - [ ] Split the existing block
+
+### Deallocation Scenarios
+
+- [x] Mark a block as free.
+- [ ] Combine free blocks with subsequent free blocks.
+- [ ] Combine free blocks with preceeding free blocks.
+
+### Supporting changes
+
+- [ ] Use SBRK rather than BRK to avoid duplicate initial syscalls.
+- [ ] Store a footer to support block merging.
 
 ## References
 

@@ -14,7 +14,7 @@ _start:
   call debugHeap
 
   # Allocate again!
-  movq $16, %rdi
+  movq $24, %rdi
   call allocate
 
   mov %rax, LOCAL_ADDRESS_OF_ALLOCATION(%rbp)

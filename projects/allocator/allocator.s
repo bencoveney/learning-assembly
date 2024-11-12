@@ -80,9 +80,6 @@ allocate:
   blockFound:
 
   # Mark the block as allocated.
-  # Param %rdi: The size of the block.
-  # Param %rsi: Whether the block is allocated.
-  # Param %rdx: The pointer to the location the header should be written to,
   movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
   movq $0x1, %rsi
   movq %rcx, %rdx
@@ -178,7 +175,7 @@ readAllocatedFromHeader:
 # Allocates the specified amount of memory.
 # Param %rdi: The size of the block.
 # Param %rsi: Whether the block is allocated.
-# Param %rdx: The pointer to the location the header should be written to,
+# Param %rdx: The pointer to the location the header should be written to.
 # Return %rax: The value to store in the header.
 writeHeader:
   enter $0, $0
