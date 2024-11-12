@@ -21,35 +21,50 @@ endOfHeap:
 # Return %rax: A pointer to the allocated memory.
 allocate:
 .equ LOCAL_AMOUNT_TO_ALLOCATE, -8
-  enter $16, $0
+.equ LOCAL_CURRENT_BLOCK_HEADER, -16
+.equ LOCAL_CURRENT_BLOCK_SIZE, -24
+.equ LOCAL_CURRENT_BLOCK_ALLOCATED, -32
+  enter $32, $0
 
-  mov %rdi, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
+  call getAllocationSize
+  mov %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
 
-  # If this is the first time we have called alloc, we need to take a quick detour and work out
+  # If this is the first time we have called allocate, we need to take a quick detour and work out
   # where the heap is.
   cmpq $0, startOfHeap
   je initialize
 
   # Loop through blocks of memory until we find a free one. For the duration:
   movq startOfHeap, %rcx
+
+  # %rcx = pointer to memory being examined
   checkNextBlock:
 
-  # Set up loop variables:
-  # - %rcx = pointer to memory being examined
-  # - %rax = size of the block
-  # - %rdi = whether it is allocated
+  # Read some information about the current block
   movq (%rcx), %rax
-  movq %rax, %rdi
-  andq $0xfffffffffffffff8, %rax
-  andq $0x1, %rdi
+  movq %rax, LOCAL_CURRENT_BLOCK_HEADER(%rbp)
+  # Get the size of the block being examined
+  movq LOCAL_CURRENT_BLOCK_HEADER(%rbp), %rdi
+  call readSizeFromHeader
+  movq %rax, LOCAL_CURRENT_BLOCK_SIZE(%rbp)
+  # Check if the block being examined is currently allocated
+  movq LOCAL_CURRENT_BLOCK_HEADER(%rbp), %rdi
+  call readAllocatedFromHeader
+  movq %rax, LOCAL_CURRENT_BLOCK_ALLOCATED(%rbp)
+
   # Check if it is allocated already
-  jnz moveToNextBlock
+  movq LOCAL_CURRENT_BLOCK_ALLOCATED(%rbp), %rax
+  cmpq $0x1, %rax
+  jz moveToNextBlock
 
   # Check if it is big enough
+  # TODO: Does this check need to exclude the header size? What size are we actually storing?
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rax
   cmpq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
   jbe blockFound
 
   moveToNextBlock:
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rax
   addq %rax, %rcx
 
   # Check if we have reached the end of the heap
@@ -60,20 +75,18 @@ allocate:
 
   reachedEndOfHeap:
 
-  # Add space for the header, and then round the requested allocation up to preserve alignment.
-  # This is duplicated below...
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  addq $HEADER_SIZE, %rdi
-  call roundToMultipleOf8
-  movq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
-
   jmp expandHeap
 
   blockFound:
 
   # Mark the block as allocated.
-  addq $0x1, %rax
-  movq %rax, (%rcx)
+  # Param %rdi: The size of the block.
+  # Param %rsi: Whether the block is allocated.
+  # Param %rdx: The pointer to the location the header should be written to,
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
+  movq $0x1, %rsi
+  movq %rcx, %rdx
+  call writeHeader
 
   # Return the pointer to the content
   addq $HEADER_SIZE, %rcx
@@ -93,11 +106,7 @@ initialize:
   movq %rax, startOfHeap
   movq %rax, endOfHeap
 
-  # Add space for the header, and then round the requested allocation up to preserve alignment.
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  addq $HEADER_SIZE, %rdi
-  call roundToMultipleOf8
-  movq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
 
 expandHeap:
 
@@ -115,12 +124,11 @@ expandHeap:
   # The heap has expanded, store the new end.
   movq %rax, endOfHeap
 
-  # We only know how to allocate a single block at the moment, but we can set up the header.
-  # Main part of the header will be the size
+  # Write the block's header
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  # We will add 1 to the address, to indicate the block is allocated.
-  addq $0x1, %rdi
-  movq %rdi, (%rcx)
+  movq $0x1, %rsi
+  movq %rcx, %rdx
+  call writeHeader
 
   # Get ready to return the memory. To do that, we will need to:
   # - Take the start of the block (currently the start of the heap)
@@ -135,17 +143,81 @@ expandHeap:
 # Param %rdi: The pointer to the beginning of the allocated memory.
 deallocate:
   enter $0, $0
-
   # Grab the header
   subq $HEADER_SIZE, %rdi
   movq (%rdi), %rax
-
   # Mask it off, so we just have the size
   andq $0xfffffffffffffff8, %rax
-
   # Write it back
   movq %rax, (%rdi)
+  leave
+  ret
 
+# Reads whether the block of memory is allocated.
+# Param %rdi: The value stored in the header.
+# Return %rax: Whether the block is allocated.
+readSizeFromHeader:
+  enter $0, $0
+  movq %rdi, %rax
+  # Mask everything except the bottom 3 bits
+  andq $0xfffffffffffffff8,%rax
+  leave
+  ret
+
+# Reads the size of the block of memory.
+# Param %rdi: The value stored in the header.
+# Return %rax: The size of the block.
+readAllocatedFromHeader:
+  enter $0, $0
+  movq %rdi, %rax
+  # The smallest bit has the allocated flag
+  andq $0x1, %rax
+  leave
+  ret
+
+# Allocates the specified amount of memory.
+# Param %rdi: The size of the block.
+# Param %rsi: Whether the block is allocated.
+# Param %rdx: The pointer to the location the header should be written to,
+# Return %rax: The value to store in the header.
+writeHeader:
+  enter $0, $0
+  cmpq $0x1, %rsi
+  jnz writeHeader_write
+  # Mark the block as allocated.
+  addq $0x1, %rdi
+  writeHeader_write:
+  movq %rdi, (%rdx)
+  leave
+  ret
+
+# Determines how much memory we need to make an allocation of N bytes when the
+# header and alignment are factored in.
+# Param %rdi: The desired number of bytes.
+# Return %rax: The value to store in the header.
+getAllocationSize:
+  enter $0, $0
+  addq $HEADER_SIZE, %rdi
+  call roundToMultipleOf8
+  # %rax will already have the result.
+  leave
+  ret
+
+# Takes the given value, and rounds it up (if required) to be a multiple of 8.
+# Param %rdi: The value to round.
+# Return %rax: The rounded value.
+.section .text
+roundToMultipleOf8:
+  enter $0, $0
+  mov %rdi, %rax
+  # Mask off the last 3 bits
+  andq $0xfffffffffffffff8, %rax
+  # If the value matches what was initially passed, then it is already divisible by 8.
+  cmpq %rdi, %rax
+  je roundToMultipleOf8_done
+  # Otherwise, add 8.
+  add $8, %rax
+  roundToMultipleOf8_done:
   leave
   ret
 
