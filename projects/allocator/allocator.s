@@ -137,17 +137,49 @@ expandHeap:
   leave
   ret
 
-# Allocates the specified amount of memory
+# Deallocates the chunk of memory
 # Param %rdi: The pointer to the beginning of the allocated memory.
 deallocate:
-  enter $0, $0
-  # Grab the header
+.equ LOCAL_TARGET_BLOCK_ADDR, -8
+.equ LOCAL_TARGET_BLOCK_SIZE, -16
+.equ LOCAL_NEXT_BLOCK_ADDR, -24
+  enter $32, $0
+
+  # Step back from the memory address to find the header.
   subq $HEADER_SIZE, %rdi
-  movq (%rdi), %rax
-  # Mask it off, so we just have the size
-  andq $0xfffffffffffffff8, %rax
-  # Write it back
-  movq %rax, (%rdi)
+  movq %rdi, LOCAL_TARGET_BLOCK_ADDR(%rbp)
+
+  # Grab the size
+  movq (%rdi), %rdi
+  call readSizeFromHeader
+  movq %rax, LOCAL_TARGET_BLOCK_SIZE(%rbp)
+
+  # Look at the next block
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rax
+  addq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rax
+  movq %rax, LOCAL_NEXT_BLOCK_ADDR(%rbp)
+
+  movq LOCAL_NEXT_BLOCK_ADDR(%rbp), %rdi
+  call readAllocatedFromHeader
+
+  # If it is free
+  cmpq $0x1, %rax
+  jz deallocate_writeHeader
+
+  # Add in the size
+  movq LOCAL_NEXT_BLOCK_ADDR(%rbp), %rdi
+  movq (%rdi), %rdi
+  call readSizeFromHeader
+  addq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rax
+  movq %rax, LOCAL_TARGET_BLOCK_SIZE(%rbp)
+
+  # Write the new header
+  deallocate_writeHeader:
+  movq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rdi
+  movq $0x0, %rsi
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdx
+  call writeHeader
+
   leave
   ret
 

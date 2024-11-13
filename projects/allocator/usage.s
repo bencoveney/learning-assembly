@@ -28,11 +28,18 @@ _start:
 
   call debugHeap
 
-  stop_here:
-
   # Allocate a subset of that big block
   movq $16, %rdi
   call allocate
+
+  mov %rax, LOCAL_ADDRESS_OF_ALLOCATION(%rbp)
+
+  call debugHeap
+
+  mov LOCAL_ADDRESS_OF_ALLOCATION(%rbp), %rdi
+
+  # Free what we just allocated
+  call deallocate
 
   call debugHeap
 

@@ -21,7 +21,7 @@ void deallocate(%rdi: pointer);
 ### Deallocation Scenarios
 
 - [x] Mark a block as free.
-- [ ] Combine free blocks with subsequent free blocks.
+- [x] Combine free blocks with subsequent free blocks.
 - [ ] Combine free blocks with preceeding free blocks (Needs footer).
 
 ### Supporting Changes
