@@ -11,8 +11,9 @@ endOfHeap:
 # bits available (last 3 bits should always be 0).
 .equ MIN_ALLOC, 8
 
-# Header will be 8 bytes (64 bits - the wordsize) large
+# Header and footer will be 8 bytes (64 bits - the wordsize) large each
 .equ HEADER_SIZE, 8
+.equ FOOTER_SIZE, 8
 
 .section .text
 
@@ -27,7 +28,7 @@ allocate:
   enter $32, $0
 
   call getAllocationSize
-  mov %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
+  movq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
 
   # If this is the first time we have called allocate, we need to take a quick detour and work out
   # where the heap is.
@@ -128,6 +129,11 @@ expandHeap:
   movq %rcx, %rdx
   call writeHeader
 
+  # Write the block's footer
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  movq %rcx, %rsi
+  call writeFooter
+
   # Get ready to return the memory. To do that, we will need to:
   # - Take the start of the block (currently the start of the heap)
   movq %rcx, %rax
@@ -180,6 +186,11 @@ deallocate:
   movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdx
   call writeHeader
 
+  # Write the new footer
+  movq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rdi
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rsi
+  call writeFooter
+
   leave
   ret
 
@@ -231,6 +242,7 @@ allocateExistingBlock:
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
   addq $HEADER_SIZE, %rax
   addq $MIN_ALLOC, %rax
+  addq $FOOTER_SIZE, %rax
   cmpq %rax, LOCAL_CURRENT_BLOCK_SIZE(%rbp)
   jge allocateExistingBlock_split
 
@@ -242,6 +254,10 @@ allocateExistingBlock:
   movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
   call writeHeader
 
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
+  call writeFooter
+
   leave
   ret
 
@@ -251,6 +267,10 @@ allocateExistingBlock:
   movq $0x1, %rsi
   movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
   call writeHeader
+
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
+  call writeFooter
 
   # Create a free block in the remainder.
   # Take the allocated size from the block size to calculate the delta which is left as free.
@@ -263,14 +283,20 @@ allocateExistingBlock:
   addq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdx
   call writeHeader
 
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
+  subq %rax, %rdi
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
+  addq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rsi
+  call writeFooter
+
   leave
   ret
 
-# Allocates the specified amount of memory.
+# Writes the header for a block of memory.
 # Param %rdi: The size of the block.
 # Param %rsi: Whether the block is allocated.
 # Param %rdx: The pointer to the location the header should be written to.
-# Return %rax: The value to store in the header.
 writeHeader:
   enter $0, $0
   cmpq $0x1, %rsi
@@ -282,6 +308,19 @@ writeHeader:
   leave
   ret
 
+# Writes the footer for a block of memory.
+# Param %rdi: The size of the block.
+# Param %rsi: The pointer to the location the header should be written to.
+writeFooter:
+  enter $0, $0
+  # Move to the end of the block
+  addq %rdi, %rsi
+  # Step back, so we are writing within the block
+  subq $FOOTER_SIZE, %rsi
+  movq %rdi, (%rsi)
+  leave
+  ret
+
 # Determines how much memory we need to make an allocation of N bytes when the
 # header and alignment are factored in.
 # Param %rdi: The desired number of bytes.
@@ -289,6 +328,7 @@ writeHeader:
 getAllocationSize:
   enter $0, $0
   addq $HEADER_SIZE, %rdi
+  addq $FOOTER_SIZE, %rdi
   call roundToMultipleOf8
   # %rax will already have the result.
   leave
@@ -299,7 +339,7 @@ getAllocationSize:
 # Return %rax: The rounded value.
 roundToMultipleOf8:
   enter $0, $0
-  mov %rdi, %rax
+  movq %rdi, %rax
   # Mask off the last 3 bits
   andq $0xfffffffffffffff8, %rax
   # If the value matches what was initially passed, then it is already divisible by 8.
@@ -314,13 +354,16 @@ roundToMultipleOf8:
 .section .data
 
 debugMessage:
-  .ascii "--------\n\nHeap Content\n\0"
+  .ascii "\n--------\n\nHeap Content\n\0"
 
 heapStartMessage:
   .ascii "\nHeap Start:\n\0"
 
 heapEndMessage:
   .ascii "Heap End:\n\0"
+
+heapSizeMessage:
+  .ascii "Heap Size:\n\0"
 
 locationMessage:
   .ascii "\nBlock At\n\0"
@@ -335,7 +378,7 @@ freeMessage:
   .ascii "Free\n\0"
 
 heapNotInitializedMessage:
-  .ascii "\nHeap Not Initialized\n\n\0"
+  .ascii "\nHeap Not Initialized\n\0"
 
 .section .text
 
@@ -353,34 +396,39 @@ debugHeap:
   # Log the heap start and end
   movq $heapStartMessage, %rdi
   call stringPrint
-  mov startOfHeap, %rdi
+  movq startOfHeap, %rdi
   call hexPrint
   movq $heapEndMessage, %rdi
   call stringPrint
-  mov endOfHeap, %rdi
+  movq endOfHeap, %rdi
   call hexPrint
+  movq $heapSizeMessage, %rdi
+  call stringPrint
+  movq endOfHeap, %rdi
+  subq startOfHeap, %rdi
+  call uintPrint
 
   # Loop through blocks of memory until we find a free one. For the duration:
   movq startOfHeap, %rcx
   debugBlock:
 
-  mov %rcx, LOCAL_CURRENT_BLOCK(%rbp)
+  movq %rcx, LOCAL_CURRENT_BLOCK(%rbp)
 
   movq $locationMessage, %rdi
   call stringPrint
 
-  mov LOCAL_CURRENT_BLOCK(%rbp), %rdi
+  movq LOCAL_CURRENT_BLOCK(%rbp), %rdi
   call hexPrint
 
   movq $sizeMessage, %rdi
   call stringPrint
 
-  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq LOCAL_CURRENT_BLOCK(%rbp), %rcx
   movq (%rcx), %rdi
   andq $0xfffffffffffffff8, %rdi
   call uintPrint
 
-  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq LOCAL_CURRENT_BLOCK(%rbp), %rcx
   movq (%rcx), %rdi
   andq $0x1, %rdi
   jnz allocated
@@ -396,7 +444,7 @@ debugHeap:
   debugToNextBlock:
 
   # Grab the size again - could be refactored
-  mov LOCAL_CURRENT_BLOCK(%rbp), %rcx
+  movq LOCAL_CURRENT_BLOCK(%rbp), %rcx
   movq (%rcx), %rdi
   andq $0xfffffffffffffff8, %rdi
   addq %rdi, %rcx

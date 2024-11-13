@@ -27,7 +27,13 @@ void deallocate(%rdi: pointer);
 ### Supporting Changes
 
 - [ ] Use SBRK rather than BRK to avoid duplicate initial syscalls.
-- [ ] Store a footer to support block merging.
+- [x] Store a footer to support block merging.
+
+### Clean Up
+
+- [ ] `%rcx` use is probably unreliable.
+- [ ] Header and footer writing could probably be consolidated.
+- [ ] Probably some local variable rearrangement is redundant.
 
 ## References
 
