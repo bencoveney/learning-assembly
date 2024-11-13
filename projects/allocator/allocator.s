@@ -38,6 +38,7 @@ allocate:
   movq startOfHeap, %rcx
 
   # %rcx = pointer to memory being examined
+  # Jank: I don't think we should be relying on the assumption that nothing will touch %rcx
   checkNextBlock:
 
   # Read some information about the current block
@@ -75,15 +76,15 @@ allocate:
 
   reachedEndOfHeap:
 
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
   jmp expandHeap
 
   blockFound:
 
   # Mark the block as allocated.
-  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
-  movq $0x1, %rsi
-  movq %rcx, %rdx
-  call writeHeader
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  movq %rcx, %rsi
+  call allocateExistingBlock
 
   # Return the pointer to the content
   addq $HEADER_SIZE, %rcx
@@ -172,6 +173,67 @@ readAllocatedFromHeader:
   leave
   ret
 
+# Allocates the specified amount of space from an existing block. If the block is larger than
+# required, it will be split.
+# Param %rdi: The size of the block.
+# Param %rsi: The pointer to the location the block should be written to.
+allocateExistingBlock:
+.equ LOCAL_AMOUNT_TO_ALLOCATE, -8
+.equ LOCAL_CURRENT_BLOCK_HEADER, -16
+.equ LOCAL_CURRENT_BLOCK_SIZE, -24
+.equ LOCAL_CURRENT_BLOCK_LOCATION, -32
+  enter $32, $0
+  movq %rdi, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
+  movq %rsi, LOCAL_CURRENT_BLOCK_LOCATION(%rbp)
+
+  # Find out about the memory block being allocated to, to know whether we should split it.
+  movq (%rsi), %rax
+  movq %rax, LOCAL_CURRENT_BLOCK_HEADER(%rbp)
+  # Get the size of the block being examined
+  movq LOCAL_CURRENT_BLOCK_HEADER(%rbp), %rdi
+  call readSizeFromHeader
+  movq %rax, LOCAL_CURRENT_BLOCK_SIZE(%rbp)
+
+  # For us to be able to split the block, it needs to be able to hold the desired block, plus
+  # enough space for another block.
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
+  addq $HEADER_SIZE, %rax
+  addq $MIN_ALLOC, %rax
+  cmpq %rax, LOCAL_CURRENT_BLOCK_SIZE(%rbp)
+  jge allocateExistingBlock_split
+
+  allocateExistingBlock_keep:
+  # The block is not big enough to split, so we need to allocate the whole thing. Use the block
+  # size rather than the desired size when allocating
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
+  movq $0x1, %rsi
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
+  call writeHeader
+
+  leave
+  ret
+
+  allocateExistingBlock_split:
+  # The block is big enough to split. Make the allocation as normal.
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  movq $0x1, %rsi
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
+  call writeHeader
+
+  # Create a free block in the remainder.
+  # Take the allocated size from the block size to calculate the delta which is left as free.
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
+  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
+  subq %rax, %rdi
+  movq $0x0, %rsi
+  # Add the delta to the allocation location to get the free block's location.
+  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
+  addq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdx
+  call writeHeader
+
+  leave
+  ret
+
 # Allocates the specified amount of memory.
 # Param %rdi: The size of the block.
 # Param %rsi: Whether the block is allocated.
@@ -203,7 +265,6 @@ getAllocationSize:
 # Takes the given value, and rounds it up (if required) to be a multiple of 8.
 # Param %rdi: The value to round.
 # Return %rax: The rounded value.
-.section .text
 roundToMultipleOf8:
   enter $0, $0
   mov %rdi, %rax
@@ -221,22 +282,28 @@ roundToMultipleOf8:
 .section .data
 
 debugMessage:
-  .ascii "--------\n\nHeap Content\n\n\0"
+  .ascii "--------\n\nHeap Content\n\0"
+
+heapStartMessage:
+  .ascii "\nHeap Start:\n\0"
+
+heapEndMessage:
+  .ascii "Heap End:\n\0"
 
 locationMessage:
-  .ascii "Block At\n\0"
+  .ascii "\nBlock At\n\0"
 
 sizeMessage:
   .ascii "Size\n\0"
 
 allocatedMessage:
-  .ascii "Allocated\n\n\0"
+  .ascii "Allocated\n\0"
 
 freeMessage:
-  .ascii "Free\n\n\0"
+  .ascii "Free\n\0"
 
 heapNotInitializedMessage:
-  .ascii "Heap Not Initialized\n\n\0"
+  .ascii "\nHeap Not Initialized\n\n\0"
 
 .section .text
 
@@ -250,6 +317,16 @@ debugHeap:
 
   cmpq $0, startOfHeap
   je heapNotInitialized
+
+  # Log the heap start and end
+  movq $heapStartMessage, %rdi
+  call stringPrint
+  mov startOfHeap, %rdi
+  call hexPrint
+  movq $heapEndMessage, %rdi
+  call stringPrint
+  mov endOfHeap, %rdi
+  call hexPrint
 
   # Loop through blocks of memory until we find a free one. For the duration:
   movq startOfHeap, %rcx

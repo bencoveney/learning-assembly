@@ -7,14 +7,14 @@ _start:
 
   call debugHeap
 
-  # Allocate!
+  # Allocate
   movq $16, %rdi
   call allocate
 
   call debugHeap
 
-  # Allocate again!
-  movq $24, %rdi
+  # Allocate a big block
+  movq $64, %rdi
   call allocate
 
   mov %rax, LOCAL_ADDRESS_OF_ALLOCATION(%rbp)
@@ -28,7 +28,9 @@ _start:
 
   call debugHeap
 
-  # Allocate even more!
+  stop_here:
+
+  # Allocate a subset of that big block
   movq $16, %rdi
   call allocate
 
