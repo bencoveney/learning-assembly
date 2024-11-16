@@ -33,14 +33,14 @@ allocate:
   # If this is the first time we have called allocate, we need to take a quick detour and work out
   # where the heap is.
   cmpq $0, startOfHeap
-  je initialize
+  je allocate_initialize
 
   # Loop through blocks of memory until we find a free one. For the duration:
   movq startOfHeap, %rcx
 
   # %rcx = pointer to memory being examined
   # Jank: I don't think we should be relying on the assumption that nothing will touch %rcx
-  checkNextBlock:
+  allocate_checkNextBlock:
 
   # Read some information about the current block
   movq (%rcx), %rax
@@ -57,30 +57,30 @@ allocate:
   # Check if it is allocated already
   movq LOCAL_CURRENT_BLOCK_ALLOCATED(%rbp), %rax
   cmpq $0x1, %rax
-  jz moveToNextBlock
+  jz allocate_moveToNextBlock
 
   # Check if it is big enough
   # TODO: Does this check need to exclude the header size? What size are we actually storing?
   movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rax
   cmpq %rax, LOCAL_AMOUNT_TO_ALLOCATE(%rbp)
-  jbe blockFound
+  jbe allocate_blockFound
 
-  moveToNextBlock:
+  allocate_moveToNextBlock:
   movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rax
   addq %rax, %rcx
 
   # Check if we have reached the end of the heap
   cmpq endOfHeap, %rcx
-  jae reachedEndOfHeap
+  jae allocate_reachedEndOfHeap
 
-  jmp checkNextBlock
+  jmp allocate_checkNextBlock
 
-  reachedEndOfHeap:
+  allocate_reachedEndOfHeap:
 
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
-  jmp expandHeap
+  jmp allocate_expandHeap
 
-  blockFound:
+  allocate_blockFound:
 
   # Mark the block as allocated.
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
@@ -94,7 +94,7 @@ allocate:
   leave
   ret
 
-initialize:
+  allocate_initialize:
 
   # Call brk to work out where the heap begins. We will need to follow this up with another call
   # to brk to actually do the allocation. This could be optimised slightly using sbrk, as that
@@ -107,7 +107,7 @@ initialize:
 
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
 
-expandHeap:
+  allocate_expandHeap:
 
   # Calculate the new end of the heap.
   movq endOfHeap, %rdi
@@ -445,7 +445,7 @@ debugHeap:
   call stringPrint
 
   cmpq $0, startOfHeap
-  je heapNotInitialized
+  je debugHeap_heapNotInitialized
 
   # Log the heap start and end
   movq $heapStartMessage, %rdi
@@ -464,7 +464,7 @@ debugHeap:
 
   # Loop through blocks of memory until we find a free one. For the duration:
   movq startOfHeap, %rcx
-  debugBlock:
+  debugHeap_debugBlock:
 
   movq %rcx, LOCAL_CURRENT_BLOCK(%rbp)
 
@@ -485,17 +485,17 @@ debugHeap:
   movq LOCAL_CURRENT_BLOCK(%rbp), %rcx
   movq (%rcx), %rdi
   andq $0x1, %rdi
-  jnz allocated
+  jnz debugHeap_allocated
 
   movq $freeMessage, %rdi
   call stringPrint
-  jmp debugToNextBlock
+  jmp debugHeap_debugToNextBlock
 
-  allocated:
+  debugHeap_allocated:
   movq $allocatedMessage, %rdi
   call stringPrint
 
-  debugToNextBlock:
+  debugHeap_debugToNextBlock:
 
   # Grab the size again - could be refactored
   movq LOCAL_CURRENT_BLOCK(%rbp), %rcx
@@ -504,12 +504,12 @@ debugHeap:
   addq %rdi, %rcx
   # Check if we have reached the end of the heap
   cmpq endOfHeap, %rcx
-  jb debugBlock
+  jb debugHeap_debugBlock
 
   leave
   ret
 
-  heapNotInitialized:
+  debugHeap_heapNotInitialized:
 
   movq $heapNotInitializedMessage, %rdi
   call stringPrint
