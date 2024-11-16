@@ -149,6 +149,7 @@ deallocate:
 .equ LOCAL_TARGET_BLOCK_ADDR, -8
 .equ LOCAL_TARGET_BLOCK_SIZE, -16
 .equ LOCAL_NEXT_BLOCK_ADDR, -24
+.equ LOCAL_PREV_BLOCK_ADDR, -32
   enter $32, $0
 
   # Step back from the memory address to find the header.
@@ -170,10 +171,38 @@ deallocate:
 
   # If it is free
   cmpq $0x1, %rax
-  jz deallocate_writeHeader
+  jz deallocate_lookBackwards
 
   # Add in the size
   movq LOCAL_NEXT_BLOCK_ADDR(%rbp), %rdi
+  movq (%rdi), %rdi
+  call readSizeFromHeader
+  addq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rax
+  movq %rax, LOCAL_TARGET_BLOCK_SIZE(%rbp)
+
+  deallocate_lookBackwards:
+
+  # Look at the previous block
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rax
+  subq $FOOTER_SIZE, %rax
+  movq (%rax), %rdi
+  call readSizeFromFooter
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdi
+  sub %rax, %rdi
+  movq %rdi, LOCAL_PREV_BLOCK_ADDR(%rbp)
+
+  movq (%rdi), %rdi
+  call readAllocatedFromHeader
+
+  # If it is free
+  cmpq $0x1, %rax
+  jz deallocate_writeHeader
+
+  # It will be the new start
+  movq LOCAL_PREV_BLOCK_ADDR(%rbp), %rdi
+  movq %rdi, LOCAL_TARGET_BLOCK_ADDR(%rbp)
+
+  # Add in the size
   movq (%rdi), %rdi
   call readSizeFromHeader
   addq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rax
@@ -194,7 +223,7 @@ deallocate:
   leave
   ret
 
-# Reads whether the block of memory is allocated.
+# Reads the size of the block of memory, based on the header.
 # Param %rdi: The value stored in the header.
 # Return %rax: Whether the block is allocated.
 readSizeFromHeader:
@@ -205,7 +234,18 @@ readSizeFromHeader:
   leave
   ret
 
-# Reads the size of the block of memory.
+# Reads the size of the block of memory, based on the header.
+# Param %rdi: The value stored in the header.
+# Return %rax: Whether the block is allocated.
+readSizeFromFooter:
+  enter $0, $0
+  movq %rdi, %rax
+  # Mask everything except the bottom 3 bits
+  andq $0xfffffffffffffff8,%rax
+  leave
+  ret
+
+# Reads whether the block of memory is allocated.
 # Param %rdi: The value stored in the header.
 # Return %rax: The size of the block.
 readAllocatedFromHeader:

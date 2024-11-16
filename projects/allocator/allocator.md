@@ -22,7 +22,8 @@ void deallocate(%rdi: pointer);
 
 - [x] Mark a block as free.
 - [x] Combine free blocks with subsequent free blocks.
-- [ ] Combine free blocks with preceeding free blocks (Needs footer).
+- [x] Combine free blocks with preceeding free blocks (Needs footer).
+- [ ] Consider start/end of heap when merging blocks.
 
 ### Supporting Changes
 
