@@ -378,25 +378,30 @@ getAllocationSize:
   enter $0, $0
   addq $HEADER_SIZE, %rdi
   addq $FOOTER_SIZE, %rdi
-  call roundToMultipleOf8
+  movq $0x8, %rsi
+  call roundUp
   # %rax will already have the result.
   leave
   ret
 
-# Takes the given value, and rounds it up (if required) to be a multiple of 8.
+# Takes the given value, and rounds it up (if required) to the nearest multiple of a power of 2.
 # Param %rdi: The value to round.
+# Param %rsi: The power of 2 to round to a multiple of (e.g. round to nearest multiple of 8, if 8 is passed).
 # Return %rax: The rounded value.
-roundToMultipleOf8:
+roundUp:
   enter $0, $0
+  # Create the mask
+  movq %rsi, %rdx
+  notq %rdx
+  # Mask off the bits
   movq %rdi, %rax
-  # Mask off the last 3 bits
-  andq $0xfffffffffffffff8, %rax
-  # If the value matches what was initially passed, then it is already divisible by 8.
+  andq %rdx, %rax
+  # If the value matches what was initially passed, then it is already divisible.
   cmpq %rdi, %rax
-  je roundToMultipleOf8_done
-  # Otherwise, add 8.
-  add $8, %rax
-  roundToMultipleOf8_done:
+  je roundUp_done
+  # Otherwise, increment by the power of 2.
+  add %rsi, %rax
+  roundUp_done:
   leave
   ret
 
