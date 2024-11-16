@@ -166,6 +166,10 @@ deallocate:
   addq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rax
   movq %rax, LOCAL_NEXT_BLOCK_ADDR(%rbp)
 
+  # Check if it is off the end of the heap
+  cmpq endOfHeap, %rax
+  jae deallocate_lookBackwards
+
   movq LOCAL_NEXT_BLOCK_ADDR(%rbp), %rdi
   call readAllocatedFromHeader
 
@@ -181,6 +185,11 @@ deallocate:
   movq %rax, LOCAL_TARGET_BLOCK_SIZE(%rbp)
 
   deallocate_lookBackwards:
+
+  # Check if it is at the start of the heap
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rax
+  cmpq startOfHeap, %rax
+  jbe deallocate_writeHeader
 
   # Look at the previous block
   movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rax

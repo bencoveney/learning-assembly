@@ -36,6 +36,15 @@ void deallocate(%rdi: pointer);
 - [ ] Header and footer writing could probably be consolidated.
 - [ ] Probably some local variable rearrangement is redundant.
 
+### Error Scenarios
+
+Could optionally be handled
+
+- [ ] Deallocating a block which has already been deallocated.
+- [ ] Allocating 0 bytes.
+- [ ] Deallocating a block which is off either end of the heap.
+- [ ] BRK/SBRK failing to allocate.
+
 ## References
 
 - https://www.youtube.com/watch?v=UTii4dyhR5c

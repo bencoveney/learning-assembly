@@ -3,6 +3,7 @@
 .section .text
 _start:
 .equ LOCAL_ADDRESS_OF_ALLOCATION, -8
+.equ LOCAL_ADDRESS_OF_FIRST_ALLOCATION, -16
   enter $16, $0
 
   call debugHeap
@@ -11,6 +12,8 @@ _start:
   # Blocks: 32 (allocated)
   movq $16, %rdi
   call allocate
+
+  movq %rax, LOCAL_ADDRESS_OF_FIRST_ALLOCATION(%rbp)
 
   call debugHeap
 
@@ -61,6 +64,13 @@ _start:
 
   # Free what we just allocated - it should be merged backwards
   # Blocks: 32 (allocated), 224 (free)
+  call deallocate
+
+  call debugHeap
+
+  # Free the first allocation
+  # Blocks: 256 (free)
+  movq LOCAL_ADDRESS_OF_FIRST_ALLOCATION(%rbp), %rdi
   call deallocate
 
   call debugHeap
