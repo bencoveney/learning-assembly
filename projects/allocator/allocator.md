@@ -41,7 +41,7 @@ void deallocate(%rdi: pointer);
   - [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
   - [x] Between `initialise` and `expandHeap`: calculating new end of heap.
   - [x] Between `initialise` and `expandHeap`: writing allocated block and free remainder block.
-  - [ ] Between `expandHeap` and `deallocate`: checking if the previous block is free.
+  - [x] Between `expandHeap` and `deallocate`: inspecting the previous block.
 
 ### Error Scenarios
 
@@ -51,13 +51,14 @@ Could optionally be handled:
 - [ ] Allocating 0 bytes.
 - [ ] Deallocating a block which is off either end of the heap.
 - [ ] BRK failing to allocate.
-- [ ] Margins for expansion could be calculated based on real-world data.
 
 ### Limitations
 
 - Overhead per memory allocation.
 - Risk of fragmentation.
-- Workload performance.
+- Real workload performance.
+  - When to expand.
+  - Best fit vs first fit.
 - Portability.
 - Heap shrinking.
 

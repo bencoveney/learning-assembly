@@ -158,15 +158,11 @@ expandHeap:
   movq %rax, LOCAL_GROW_FROM(%rbp)
 
   # Check if the current last block is free. If so, the allocation can start from there.
-  movq endOfHeap, %rax
-  subq $FOOTER_SIZE, %rax
-  movq (%rax), %rdi
-  call readSizeFromFooter
   movq endOfHeap, %rdi
-  sub %rax, %rdi
-  movq %rdi, LOCAL_PREV_BLOCK_ADDR(%rbp)
+  call previousBlockAddress
+  movq %rax, LOCAL_PREV_BLOCK_ADDR(%rbp)
 
-  movq (%rdi), %rdi
+  movq (%rax), %rdi
   call readAllocatedFromHeader
 
   # If it is free
@@ -284,15 +280,11 @@ deallocate:
   jbe deallocate_writeHeader
 
   # Look at the previous block
-  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rax
-  subq $FOOTER_SIZE, %rax
-  movq (%rax), %rdi
-  call readSizeFromFooter
   movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdi
-  sub %rax, %rdi
-  movq %rdi, LOCAL_PREV_BLOCK_ADDR(%rbp)
+  call previousBlockAddress
+  movq %rax, LOCAL_PREV_BLOCK_ADDR(%rbp)
 
-  movq (%rdi), %rdi
+  movq (%rax), %rdi
   call readAllocatedFromHeader
 
   # If it is free
@@ -315,6 +307,25 @@ deallocate:
   movq $0x0, %rsi
   movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdx
   call writeBlock
+
+  leave
+  ret
+
+# Given the address of a block, find the address of a preceeding block
+# Param %rdi: The address of a block.
+# Return %rax: The address of a previous block.
+previousBlockAddress:
+.equ LOCAL_TARGET_BLOCK_ADDR, -8
+  enter $16, $0
+
+  movq %rdi, LOCAL_TARGET_BLOCK_ADDR(%rbp)
+
+  subq $FOOTER_SIZE, %rdi
+  movq (%rdi), %rdi
+  call readSizeFromFooter
+  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdi
+  sub %rax, %rdi
+  movq %rdi, %rax
 
   leave
   ret
