@@ -15,6 +15,15 @@ endOfHeap:
 .equ HEADER_SIZE, 8
 .equ FOOTER_SIZE, 8
 
+# When increasing the program break, how much extra space should we make sure we have available?
+# This can help avoiding extra syscalls, because it is possible that subsequent allocations will
+# fit within this margin.
+.equ MARGIN, 1024
+
+# Align the allocation changes to the (assumed) page-size boundaries, because the OS will be using
+# pages behind the scenes anyway.
+.equ PROGRAM_BREAK_ALIGNMENT, 4096
+
 .section .text
 
 # Allocates the specified amount of memory
@@ -96,16 +105,11 @@ allocate:
 
   allocate_initialize:
 
-  # Call brk to work out where the heap begins. We will need to follow this up with another call
-  # to brk to actually do the allocation. This could be optimised slightly using sbrk, as that
-  # would let us allocate and get the heap address at the same time.
-  movq $0, %rdi
-  call brk
+  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
+  call initialise
 
-  movq %rax, startOfHeap
-  movq %rax, endOfHeap
-
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
+  leave
+  ret
 
   allocate_expandHeap:
 
@@ -138,6 +142,66 @@ allocate:
   # - Take the start of the block (currently the start of the heap)
   movq %rcx, %rax
   # - Offset it by the size of the header
+  addq $HEADER_SIZE, %rax
+
+  leave
+  ret
+
+# Initializes the heap.
+# Param %rdi: The amount to allocate.
+# Return %rax: The address of the allocation.
+initialise:
+.equ LOCAL_TARGET_SIZE, -8
+.equ DESIRED_HEAP_SIZE, -16
+  enter $16, $0
+
+  movq %rdi, LOCAL_TARGET_SIZE(%rbp)
+
+  # Calculate what to set the program break to.
+  add $MARGIN, %rdi
+  movq $PROGRAM_BREAK_ALIGNMENT, %rsi
+  call roundUp
+  movq %rax, DESIRED_HEAP_SIZE(%rbp)
+
+  # Call brk to work out where the heap begins.
+  movq $0, %rdi
+  call brk
+  movq %rax, startOfHeap
+
+  # Work out where we want the heap to end.
+  addq DESIRED_HEAP_SIZE(%rbp), %rax
+  movq %rax, endOfHeap
+
+  # Move the program break
+  movq %rax, %rdi
+  call brk
+
+  # Write the allocated block.
+  movq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq $0x1, %rsi
+  movq startOfHeap, %rdx
+  call writeHeader
+
+  movq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq startOfHeap, %rsi
+  call writeFooter
+
+  # Write the remainder.
+  movq DESIRED_HEAP_SIZE(%rbp), %rdi
+  subq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq $0x0, %rsi
+  movq startOfHeap, %rdx
+  addq LOCAL_TARGET_SIZE(%rbp), %rdx
+  call writeHeader
+
+  movq DESIRED_HEAP_SIZE(%rbp), %rdi
+  subq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq startOfHeap, %rsi
+  addq LOCAL_TARGET_SIZE(%rbp), %rsi
+  call writeFooter
+
+  # Return the allocated address.
+  movq startOfHeap, %rax
   addq $HEADER_SIZE, %rax
 
   leave
@@ -359,7 +423,7 @@ writeHeader:
 
 # Writes the footer for a block of memory.
 # Param %rdi: The size of the block.
-# Param %rsi: The pointer to the location the header should be written to.
+# Param %rsi: The pointer to the location of the block's header.
 writeFooter:
   enter $0, $0
   # Move to the end of the block
@@ -392,6 +456,8 @@ roundUp:
   enter $0, $0
   # Create the mask
   movq %rsi, %rdx
+  blsmskq %rsi, %rdx
+  subq %rsi, %rdx
   notq %rdx
   # Mask off the bits
   movq %rdi, %rax

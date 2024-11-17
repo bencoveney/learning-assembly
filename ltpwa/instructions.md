@@ -207,6 +207,9 @@ bsrq %rdx # 7?
 
 Can flip bits (with `not`) to count 1s.
 
+- https://en.wikipedia.org/wiki/X86_Bit_manipulation_instruction_set
+- https://www.chessprogramming.org/TBM
+
 ## Jumps
 
 - _Short Jump_
