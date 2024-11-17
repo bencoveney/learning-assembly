@@ -39,13 +39,13 @@ void deallocate(%rdi: pointer);
   - [ ] `writeHeader` can probably be optimised.
 - Logic can probably be shared.
   - [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
-  - [ ] Between `initialise` and `expandHeap`: calculating new end of heap.
-  - [ ] Between `initialise` and `expandHeap`: writing allocated block and free remainder block.
+  - [x] Between `initialise` and `expandHeap`: calculating new end of heap.
+  - [x] Between `initialise` and `expandHeap`: writing allocated block and free remainder block.
   - [ ] Between `expandHeap` and `deallocate`: checking if the previous block is free.
 
 ### Error Scenarios
 
-Could optionally be handled
+Could optionally be handled:
 
 - [ ] Deallocating a block which has already been deallocated.
 - [ ] Allocating 0 bytes.

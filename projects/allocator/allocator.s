@@ -129,42 +129,14 @@ initialise:
 
   movq %rdi, LOCAL_TARGET_SIZE(%rbp)
 
-  # Calculate what to set the program break to.
-  add $MARGIN, %rdi
-  movq $PROGRAM_BREAK_ALIGNMENT, %rsi
-  call roundUp
-  movq %rax, LOCAL_DESIRED_HEAP_SIZE(%rbp)
-
   # Call brk to work out where the heap begins.
   movq $0, %rdi
   call brk
   movq %rax, startOfHeap
 
-  # Work out where we want the heap to end.
-  addq LOCAL_DESIRED_HEAP_SIZE(%rbp), %rax
-  movq %rax, endOfHeap
-
-  # Move the program break
-  movq %rax, %rdi
-  call brk
-
-  # Write the allocated block.
   movq LOCAL_TARGET_SIZE(%rbp), %rdi
-  movq $0x1, %rsi
-  movq startOfHeap, %rdx
-  call writeBlock
-
-  # Write the remainder.
-  movq LOCAL_DESIRED_HEAP_SIZE(%rbp), %rdi
-  subq LOCAL_TARGET_SIZE(%rbp), %rdi
-  movq $0x0, %rsi
-  movq startOfHeap, %rdx
-  addq LOCAL_TARGET_SIZE(%rbp), %rdx
-  call writeBlock
-
-  # Return the allocated address.
-  movq startOfHeap, %rax
-  addq $HEADER_SIZE, %rax
+  movq %rax, %rsi
+  call expandHeapFrom
 
   leave
   ret
@@ -185,7 +157,7 @@ expandHeap:
   movq endOfHeap, %rax
   movq %rax, LOCAL_GROW_FROM(%rbp)
 
-  # Check if the last current block is free. If so, the allocation can start from there.
+  # Check if the current last block is free. If so, the allocation can start from there.
   movq endOfHeap, %rax
   subq $FOOTER_SIZE, %rax
   movq (%rax), %rdi
@@ -204,6 +176,27 @@ expandHeap:
   movq %rax, LOCAL_GROW_FROM(%rbp)
 
   expandHeap_locationFound:
+  movq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq LOCAL_GROW_FROM(%rbp), %rsi
+
+  call expandHeapFrom
+
+  leave
+  ret
+
+# Expands the heap from a specified point to accomodate an allocation.
+# Param %rdi: The amount to allocate.
+# Param %rsi: The location to expand from
+# Return %rax: The address of the allocation.
+expandHeapFrom:
+.equ LOCAL_TARGET_SIZE, -8
+.equ LOCAL_GROW_FROM, -16
+.equ LOCAL_DESIRED_HEAP_END, -24
+  enter $32, $0
+
+  movq %rdi, LOCAL_TARGET_SIZE(%rbp)
+  movq %rsi, LOCAL_GROW_FROM(%rbp)
+
   # Calculate the new end of the heap.
   movq LOCAL_GROW_FROM(%rbp), %rdi
   addq LOCAL_TARGET_SIZE(%rbp), %rdi
@@ -508,8 +501,8 @@ roundUp:
 
 .section .data
 
-debugMessage:
-  .ascii "\n--------\n\nHeap Content\n\0"
+borderMessage:
+  .ascii "\n--------\n\0"
 
 heapStartMessage:
   .ascii "\nHeap Start:\n\0"
@@ -542,7 +535,7 @@ debugHeap:
 .equ LOCAL_CURRENT_BLOCK, -8
   enter $16, $0
 
-  movq $debugMessage, %rdi
+  movq $borderMessage, %rdi
   call stringPrint
 
   cmpq $0, startOfHeap
