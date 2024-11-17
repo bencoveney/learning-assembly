@@ -15,9 +15,9 @@ void deallocate(%rdi: pointer);
   - [x] Expand at by at least the pagesize.
 - When there are no free blocks which will fit the allocation:
   - [x] Expand the heap to create a new block.
-  - [ ] Expand the heap from the start of a trailing free block, rather than the end of the heap.
-  - [ ] Leave a margin for subsequent allocations.
-  - [ ] Expand at by at least the pagesize.
+  - [x] Expand the heap from the start of a trailing free block, rather than the end of the heap.
+  - [x] Leave a margin for subsequent allocations.
+  - [x] Expand at by at least the pagesize.
 - When there are free blocks which will fit the allocation:
   - [x] Allocate the existing block.
   - [x] Split the existing block.
@@ -32,10 +32,16 @@ void deallocate(%rdi: pointer);
 ### Clean Up
 
 - [ ] `%rcx` use is probably unreliable.
-- [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
 - [ ] Probably some local variable rearrangement is redundant.
-- [ ] Some jumps (e.g. in `writeHeader`) can probably be dodged with bit twiddling.
 - [ ] Align jump targets.
+- Bit twiddling opportunities.
+  - [ ] `roundUp` can probably be optimised.
+  - [ ] `writeHeader` can probably be optimised.
+- Logic can probably be shared.
+  - [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
+  - [ ] Between `initialise` and `expandHeap`: calculating new end of heap.
+  - [ ] Between `initialise` and `expandHeap`: writing allocated block and free remainder block.
+  - [ ] Between `expandHeap` and `deallocate`: checking if the previous block is free.
 
 ### Error Scenarios
 
@@ -45,6 +51,15 @@ Could optionally be handled
 - [ ] Allocating 0 bytes.
 - [ ] Deallocating a block which is off either end of the heap.
 - [ ] BRK failing to allocate.
+- [ ] Margins for expansion could be calculated based on real-world data.
+
+### Limitations
+
+- Overhead per memory allocation.
+- Risk of fragmentation.
+- Workload performance.
+- Portability.
+- Heap shrinking.
 
 ## References
 

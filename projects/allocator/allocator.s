@@ -113,31 +113,8 @@ allocate:
 
   allocate_expandHeap:
 
-  # Calculate the new end of the heap.
-  movq endOfHeap, %rdi
-  addq %rax, %rdi
-
-  # Set it!
-  call brk
-
-  # Before we mark the heap as expanded, we should take note of where it was before.
-  # That will be the start of the new block.
-  movq endOfHeap, %rcx
-
-  # The heap has expanded, store the new end.
-  movq %rax, endOfHeap
-
-  # Write the block's header
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  movq $0x1, %rsi
-  movq %rcx, %rdx
-  call writeBlock
-
-  # Get ready to return the memory. To do that, we will need to:
-  # - Take the start of the block (currently the start of the heap)
-  movq %rcx, %rax
-  # - Offset it by the size of the header
-  addq $HEADER_SIZE, %rax
+  call expandHeap
 
   leave
   ret
@@ -147,7 +124,7 @@ allocate:
 # Return %rax: The address of the allocation.
 initialise:
 .equ LOCAL_TARGET_SIZE, -8
-.equ DESIRED_HEAP_SIZE, -16
+.equ LOCAL_DESIRED_HEAP_SIZE, -16
   enter $16, $0
 
   movq %rdi, LOCAL_TARGET_SIZE(%rbp)
@@ -156,7 +133,7 @@ initialise:
   add $MARGIN, %rdi
   movq $PROGRAM_BREAK_ALIGNMENT, %rsi
   call roundUp
-  movq %rax, DESIRED_HEAP_SIZE(%rbp)
+  movq %rax, LOCAL_DESIRED_HEAP_SIZE(%rbp)
 
   # Call brk to work out where the heap begins.
   movq $0, %rdi
@@ -164,7 +141,7 @@ initialise:
   movq %rax, startOfHeap
 
   # Work out where we want the heap to end.
-  addq DESIRED_HEAP_SIZE(%rbp), %rax
+  addq LOCAL_DESIRED_HEAP_SIZE(%rbp), %rax
   movq %rax, endOfHeap
 
   # Move the program break
@@ -178,7 +155,7 @@ initialise:
   call writeBlock
 
   # Write the remainder.
-  movq DESIRED_HEAP_SIZE(%rbp), %rdi
+  movq LOCAL_DESIRED_HEAP_SIZE(%rbp), %rdi
   subq LOCAL_TARGET_SIZE(%rbp), %rdi
   movq $0x0, %rsi
   movq startOfHeap, %rdx
@@ -187,6 +164,78 @@ initialise:
 
   # Return the allocated address.
   movq startOfHeap, %rax
+  addq $HEADER_SIZE, %rax
+
+  leave
+  ret
+
+# Expands the heap to accomodate an allocation which would not fit in any existing blocks.
+# Param %rdi: The amount to allocate.
+# Return %rax: The address of the allocation.
+expandHeap:
+.equ LOCAL_TARGET_SIZE, -8
+.equ LOCAL_GROW_FROM, -16
+.equ LOCAL_PREV_BLOCK_ADDR, -24
+.equ LOCAL_DESIRED_HEAP_END, -32
+  enter $32, $0
+
+  movq %rdi, LOCAL_TARGET_SIZE(%rbp)
+
+  # Assume we will be growing from the end of the heap.
+  movq endOfHeap, %rax
+  movq %rax, LOCAL_GROW_FROM(%rbp)
+
+  # Check if the last current block is free. If so, the allocation can start from there.
+  movq endOfHeap, %rax
+  subq $FOOTER_SIZE, %rax
+  movq (%rax), %rdi
+  call readSizeFromFooter
+  movq endOfHeap, %rdi
+  sub %rax, %rdi
+  movq %rdi, LOCAL_PREV_BLOCK_ADDR(%rbp)
+
+  movq (%rdi), %rdi
+  call readAllocatedFromHeader
+
+  # If it is free
+  cmpq $0x1, %rax
+  jz expandHeap_locationFound
+  movq LOCAL_PREV_BLOCK_ADDR(%rbp), %rax
+  movq %rax, LOCAL_GROW_FROM(%rbp)
+
+  expandHeap_locationFound:
+  # Calculate the new end of the heap.
+  movq LOCAL_GROW_FROM(%rbp), %rdi
+  addq LOCAL_TARGET_SIZE(%rbp), %rdi
+  add $MARGIN, %rdi
+  movq $PROGRAM_BREAK_ALIGNMENT, %rsi
+  call roundUp
+  movq %rax, LOCAL_DESIRED_HEAP_END(%rbp)
+
+  # Grow the heap.
+  movq LOCAL_DESIRED_HEAP_END(%rbp), %rdi
+  call brk
+
+  movq LOCAL_DESIRED_HEAP_END(%rbp), %rax
+  movq %rax, endOfHeap
+
+  # Write the allocated block.
+  movq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq $0x1, %rsi
+  movq LOCAL_GROW_FROM(%rbp), %rdx
+  call writeBlock
+
+  # Write the remainder.
+  movq endOfHeap, %rdi
+  subq LOCAL_GROW_FROM(%rbp), %rdi
+  subq LOCAL_TARGET_SIZE(%rbp), %rdi
+  movq $0x0, %rsi
+  movq endOfHeap, %rdx
+  subq %rdi, %rdx
+  call writeBlock
+
+  # Return the allocated address.
+  movq LOCAL_GROW_FROM(%rbp), %rax
   addq $HEADER_SIZE, %rax
 
   leave
@@ -220,6 +269,7 @@ deallocate:
   jae deallocate_lookBackwards
 
   movq LOCAL_NEXT_BLOCK_ADDR(%rbp), %rdi
+  movq (%rdi), %rdi
   call readAllocatedFromHeader
 
   # If it is free
