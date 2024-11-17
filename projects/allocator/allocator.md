@@ -36,7 +36,7 @@ void deallocate(%rdi: pointer);
 - [ ] Align jump targets.
 - Bit twiddling opportunities.
   - [ ] `roundUp` can probably be optimised.
-  - [ ] `writeHeader` can probably be optimised.
+  - [x] `writeHeader` can probably be optimised.
 - Logic can probably be shared.
   - [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
   - [x] Between `initialise` and `expandHeap`: calculating new end of heap.

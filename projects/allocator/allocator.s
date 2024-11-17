@@ -451,11 +451,7 @@ writeBlock:
 # Param %rdx: The pointer to the location the header should be written to.
 writeHeader:
   enter $0, $0
-  cmpq $0x1, %rsi
-  jnz writeHeader_write
-  # Mark the block as allocated.
-  addq $0x1, %rdi
-  writeHeader_write:
+  orq %rsi, %rdi
   movq %rdi, (%rdx)
   leave
   ret
