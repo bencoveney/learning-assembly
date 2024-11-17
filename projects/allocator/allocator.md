@@ -32,8 +32,10 @@ void deallocate(%rdi: pointer);
 ### Clean Up
 
 - [ ] `%rcx` use is probably unreliable.
-- [ ] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
+- [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
 - [ ] Probably some local variable rearrangement is redundant.
+- [ ] Some jumps (e.g. in `writeHeader`) can probably be dodged with bit twiddling.
+- [ ] Align jump targets.
 
 ### Error Scenarios
 

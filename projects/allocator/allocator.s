@@ -131,12 +131,7 @@ allocate:
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
   movq $0x1, %rsi
   movq %rcx, %rdx
-  call writeHeader
-
-  # Write the block's footer
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  movq %rcx, %rsi
-  call writeFooter
+  call writeBlock
 
   # Get ready to return the memory. To do that, we will need to:
   # - Take the start of the block (currently the start of the heap)
@@ -180,11 +175,7 @@ initialise:
   movq LOCAL_TARGET_SIZE(%rbp), %rdi
   movq $0x1, %rsi
   movq startOfHeap, %rdx
-  call writeHeader
-
-  movq LOCAL_TARGET_SIZE(%rbp), %rdi
-  movq startOfHeap, %rsi
-  call writeFooter
+  call writeBlock
 
   # Write the remainder.
   movq DESIRED_HEAP_SIZE(%rbp), %rdi
@@ -192,13 +183,7 @@ initialise:
   movq $0x0, %rsi
   movq startOfHeap, %rdx
   addq LOCAL_TARGET_SIZE(%rbp), %rdx
-  call writeHeader
-
-  movq DESIRED_HEAP_SIZE(%rbp), %rdi
-  subq LOCAL_TARGET_SIZE(%rbp), %rdi
-  movq startOfHeap, %rsi
-  addq LOCAL_TARGET_SIZE(%rbp), %rsi
-  call writeFooter
+  call writeBlock
 
   # Return the allocated address.
   movq startOfHeap, %rax
@@ -286,12 +271,7 @@ deallocate:
   movq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rdi
   movq $0x0, %rsi
   movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rdx
-  call writeHeader
-
-  # Write the new footer
-  movq LOCAL_TARGET_BLOCK_SIZE(%rbp), %rdi
-  movq LOCAL_TARGET_BLOCK_ADDR(%rbp), %rsi
-  call writeFooter
+  call writeBlock
 
   leave
   ret
@@ -365,11 +345,7 @@ allocateExistingBlock:
   movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
   movq $0x1, %rsi
   movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
-  call writeHeader
-
-  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
-  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
-  call writeFooter
+  call writeBlock
 
   leave
   ret
@@ -379,11 +355,7 @@ allocateExistingBlock:
   movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
   movq $0x1, %rsi
   movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
-  call writeHeader
-
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdi
-  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
-  call writeFooter
+  call writeBlock
 
   # Create a free block in the remainder.
   # Take the allocated size from the block size to calculate the delta which is left as free.
@@ -394,13 +366,26 @@ allocateExistingBlock:
   # Add the delta to the allocation location to get the free block's location.
   movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rdx
   addq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rdx
+  call writeBlock
+
+  leave
+  ret
+
+# Writes the header and footer for a block of memory.
+# Param %rdi: The size of the block.
+# Param %rsi: Whether the block is allocated.
+# Param %rdx: The pointer to the location the block should be written to.
+writeBlock:
+.equ LOCAL_BLOCK_SIZE, -8
+.equ LOCAL_BLOCK_LOCATION, -16
+  enter $16, $0
+  movq %rdi, LOCAL_BLOCK_SIZE(%rbp)
+  movq %rdx, LOCAL_BLOCK_LOCATION(%rbp)
+
   call writeHeader
 
-  movq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rax
-  movq LOCAL_CURRENT_BLOCK_SIZE(%rbp), %rdi
-  subq %rax, %rdi
-  movq LOCAL_CURRENT_BLOCK_LOCATION(%rbp), %rsi
-  addq LOCAL_AMOUNT_TO_ALLOCATE(%rbp), %rsi
+  movq LOCAL_BLOCK_SIZE(%rbp), %rdi
+  movq LOCAL_BLOCK_LOCATION(%rbp), %rsi
   call writeFooter
 
   leave
