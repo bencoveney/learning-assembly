@@ -48,7 +48,8 @@ allocate:
   movq startOfHeap, %rcx
 
   # %rcx = pointer to memory being examined
-  # Jank: I don't think we should be relying on the assumption that nothing will touch %rcx
+  # There is some jank here, in that we are relying on nothing to touch %rcx for the duration, but
+  # that assumption is safe for now...
   allocate_checkNextBlock:
 
   # Read some information about the current block
@@ -484,6 +485,7 @@ getAllocationSize:
   ret
 
 # Takes the given value, and rounds it up (if required) to the nearest multiple of a power of 2.
+# This can be useful for aligning to memory addresses, or page sizes.
 # Param %rdi: The value to round.
 # Param %rsi: The power of 2 to round to a multiple of (e.g. round to nearest multiple of 8, if 8 is passed).
 # Return %rax: The rounded value.
@@ -497,7 +499,7 @@ roundUp:
   # Mask off the bits
   movq %rdi, %rax
   andq %rdx, %rax
-  # If the value matches what was initially passed, then it is already divisible.
+  # If the value matches what was initially passed, then it is already a multiple.
   cmpq %rdi, %rax
   je roundUp_done
   # Otherwise, increment by the power of 2.

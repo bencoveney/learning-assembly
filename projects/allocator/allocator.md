@@ -31,12 +31,7 @@ void deallocate(%rdi: pointer);
 
 ### Clean Up
 
-- [ ] `%rcx` use is probably unreliable.
-- [ ] Probably some local variable rearrangement is redundant.
-- [ ] Align jump targets.
-- Bit twiddling opportunities.
-  - [ ] `roundUp` can probably be optimised.
-  - [x] `writeHeader` can probably be optimised.
+- [x] `writeHeader` can probably be optimised.
 - Logic can probably be shared.
   - [x] `writeHeader` and `writeFooter` could probably often be consolidated into `writeBlock`.
   - [x] Between `initialise` and `expandHeap`: calculating new end of heap.
@@ -57,10 +52,12 @@ Could optionally be handled:
 - Overhead per memory allocation.
 - Risk of fragmentation.
 - Real workload performance.
-  - When to expand.
+  - When to expand, and how much margin to leave.
   - Best fit vs first fit.
 - Portability.
 - Heap shrinking.
+- Does not consider multithreading.
+- Plenty of opportunity for optimization, e.g. alignment.
 
 ## References
 
